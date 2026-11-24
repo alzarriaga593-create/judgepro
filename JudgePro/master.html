@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"><title>FERNANDO ARRIAGA - TABULACION JUECES</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#000;color:#fff;font-family:Arial, sans-serif}
+.header{background:#ffcc00;color:#000;text-align:center;font-weight:bold;font-size:22px;padding:12px;border:3px solid #000;font-family:Arial Black, Arial;display:flex;align-items:center;justify-content:center;position:relative}
+.header .logoEsquina{width:52px;height:52px;object-fit:contain;background:#fff;border-radius:50%;padding:2px;position:absolute;left:12px;top:50%;transform:translateY(-50%)}
+.header .textoHeader{width:100%;text-align:center}
+#tituloPantalla{display:block}
+#tituloPrint{display:none}
+.tituloPrintGrande{display:block;font-size:22px;line-height:1.2}
+.tituloPrintChico{display:block;font-size:12px;line-height:1.4;margin-top:4px;letter-spacing:1px;font-family:Arial}
+.footerPesaje{text-align:center;padding:20px 10px 25px;color:#aaa;font-size:13px;line-height:1.6;border-top:1px solid #333;margin:20px 10px 0}
+.footerPrint{display:none}
+#firmasJueces{display:none}
+@media print{body{background:#fff !important;color:#000 !important}.live-bar,.controls,.col-x,#panelMensajes,.footerPesaje{display:none !important}.header{background:#fff !important;color:#000 !important;border:3px solid #000 !important}.header .logoEsquina{display:none !important}#tituloPantalla{display:none !important}#tituloPrint{display:block !important;font-family:Arial Black;text-transform:uppercase}.top-red{background:#fff !important;border:2px solid #000 !important}.top-red label{color:#000 !important}th{background:#fff !important;color:#000 !important;border:1.5px solid #000 !important}td{background:#fff !important;border:1px solid #000 !important}.box{background:#fff !important;color:#000 !important;border:1.2px solid #000 !important}.footerPrint{display:block !important;text-align:center;font-size:11px;font-weight:bold;color:#000;border-top:2px solid #000;padding-top:8px;margin-top:12px}
+#firmasJueces{display:block !important;margin-top:18px;border-top:2px solid #000;padding-top:10px;text-align:left}
+#firmasJueces h3{text-align:center;font-family:Arial Black;font-size:14px;margin:0 0 10px}
+.firmaRow{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px dotted #000;padding:10px 5px;font-size:13px}
+.firmaRow .firmaLine{border-top:1px solid #000;width:180px;text-align:center;font-size:10px;padding-top:2px}
+}
+.top-red{background:#9c1a1a;padding:8px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;border:2px solid #000}
+.top-red label{font-size:10px;color:#ffbaba;display:block;font-weight:bold;font-family:Arial}
+.top-red input,.top-red select{width:100%;padding:7px;border:1px solid #000;font-size:12px;font-weight:bold;font-family:Arial, sans-serif}
+.top-red select option{font-family:Arial, sans-serif;font-weight:normal;font-size:12px}
+.controls{background:#1e1e1e;padding:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;border-bottom:3px solid #ffcc00}
+.btn{background:#ffcc00;color:#000;border:2px solid #000;padding:7px 10px;font-weight:bold;font-size:11px;cursor:pointer;font-family:Arial}
+.btn-green{background:#00c853;color:#fff;border:2px solid #000}
+.btn-red{background:#d50000;color:#fff}
+.live-bar{background:#000;border:2px solid #00c853;padding:8px;display:flex;gap:8px;align-items:center}
+table{width:100%;border-collapse:collapse;background:#000;table-layout:fixed}
+th{background:#7a5a00;color:#ffcc00;padding:8px 2px;font-size:11px;border:1px solid #000;text-align:center;font-family:Arial}
+td{background:#1e1e1e;padding:5px 2px;border:1px solid #333;text-align:center}
+.box{width:96%;background:#fff;color:#000;border:none;border-radius:12px;padding:7px 4px;font-weight:bold;font-size:13px;text-align:center;font-family:Arial}
+.box.nombre,.box.gym{text-align:left;padding-left:8px}
+.col-hash{width:35px}.col-num{width:70px}.col-nombre{width:30%}.col-gym{width:18%}.col-juez{width:52px}.col-raw{width:50px}.col-lugar{width:75px}.col-x{width:35px}
+td.lugar .box{background:#00c853;color:#fff;font-size:22px;border-radius:8px}
+td.raw .box{background:#000;color:#ffcc00;border:1px solid #ffcc00}
+</style>
+</head>
+<body>
+<div class="header"><img src="logo2.png" class="logoEsquina" alt="EASY REFEREE"><div class="textoHeader"><span id="tituloPantalla">MR QUITO - QUITO - TABULACION JUECES</span><span id="tituloPrint"><span class="tituloPrintGrande" id="tituloPrintGrande">RESULTADOS - FISICO CULTURISMO - JUNIOR</span><span class="tituloPrintChico" id="tituloPrintChico">EASY REFEREE - MR QUITO - QUITO</span></span></div></div>
+<div class="live-bar"><span style="color:#00c853;font-weight:bold">● EN VIVO: <span id="estado">OK</span></span><button class="btn" onclick="actualizarMaster()" style="margin-left:auto">↻ ACTUALIZAR</button><button class="btn" onclick="location.href='categorias.html'" style="background:#7a5a00;color:#ffcc00;border-color:#ffcc00">📋 VOLVER A TARIMAS</button><button class="btn btn-red" onclick="resetTodo(true)">RESET TODO</button><button class="btn" onclick="resetTodo(false)" style="background:#ff9800">RESET VOTOS</button><span id="serverStatus" style="margin-left:auto;color:#ffcc00;font-size:11px"></span></div>
+<div class="top-red">
+<div><label>EVENTO:</label><input id="evento" value="MR QUITO" oninput="enviarInfo()"></div>
+<div><label>LUGAR:</label><input id="lugar" value="QUITO" oninput="enviarInfo()"></div>
+<div><label>NIVEL:</label><select id="nivel" onchange="enviarInfo()"><option>NOVATO</option><option selected>CLASIFICADO</option><option>OPEN</option></select></div>
+<div><label>MODALIDAD:</label><input id="modalidad" value="FISICO CULTURISMO" oninput="enviarInfo()"></div>
+<div><label>CATEGORIA:</label><select id="categoria" onchange="enviarInfo()"><option>INFANTIL</option><option>CADETE</option><option>SUB JUNIOR</option><option selected>JUNIOR</option><option>SENIOR</option><option>MASTER 1</option><option>MASTER 2</option><option>MASTER 3</option><option>MASTER 4</option><option>MASTER 5</option></select></div>
+<div><label>DIVISION:</label><input id="division" value="HASTA 80KG" oninput="enviarInfo()"></div>
+</div>
+<div class="controls">
+<span style="font-weight:bold;color:#ffcc00;font-family:Arial Black">JUECES: <span id="numJ">3</span></span>
+<button class="btn" onclick="addJuez()">+ JUEZ</button>
+<button class="btn" onclick="delJuez()">- JUEZ</button>
+<button class="btn btn-green" onclick="addAtleta()">+ ATLETA</button>
+<label style="font-size:11px;color:#fff;font-family:Arial"><input type="checkbox" id="quitar"> QUITAR ALTA Y BAJA</label>
+<button class="btn" onclick="render()">CALCULAR LUGARES</button>
+<button class="btn btn-red" onclick="imprimirActa()">IMPRIMIR ACTA</button>
+<button class="btn" onclick="verAbsolutos()" style="background:#7a5a00;color:#ffcc00;border-color:#ffcc00">🏆 ABSOLUTOS (<span id="cntAbs">0</span>)</button>
+<button class="btn" onclick="competirAbsoluto()" style="background:#00c853;color:#fff;border-color:#000">▶ COMPETIR ABSOLUTO</button>
+</div>
+<div id="panelMensajes" style="background:#111;border:2px solid #ffcc00;padding:6px 10px;font-family:Arial;font-size:11px;display:none">
+<span id="msgAltaBaja" style="color:#ff9800;font-weight:bold"></span>
+<span id="msgEmpate" style="color:#00e676;font-weight:bold;margin-left:15px"></span>
+</div>
+<table><thead><tr id="head"></tr></thead><tbody id="body"></tbody></table>
+<div id="firmasJueces"><h3>JUECES OFICIALES</h3><div id="listaJuecesActa"></div></div>
+<div class="footerPesaje">Desarrollado por Fernando A. Arriaga creador y propietario.<br>© 2026 EASY REFEREE - B&W FITNESS<br>Contacto: 0987144752 - alzarriaga593@gmail.com</div>
+<div class="footerPrint">Easy Referee_Fernando Arriaga_Contactos alzarriaga593@gmail.com</div>
+<script>
+// ===== CORRECCION 1 - MARCA QUE SOBREVIVE AL RELOAD =====
+let MASTER_ENCERADO = localStorage.getItem('bw_master_encerado') === '1';
+let tarimaActiva = JSON.parse(localStorage.getItem('bw_tarima_activa') || localStorage.getItem('bw_puntuacion_activa') || 'null');
+// Si viene tarima nueva desde categorias.html, se quita lo encerado
+if(tarimaActiva && tarimaActiva.atletas && tarimaActiva.atletas.length>0){
+  MASTER_ENCERADO = false;
+  localStorage.removeItem('bw_master_encerado');
+}
+// ===== CORRECCION 2 - FUNCION PARA ENCERAR DE VERDAD =====
+function encerarFranjaRoja(){
+  document.getElementById('evento').value = '';
+  document.getElementById('lugar').value = '';
+  document.getElementById('modalidad').value = '';
+  document.getElementById('division').value = '';
+  document.getElementById('nivel').value = 'NOVATO';
+  let catSel = document.getElementById('categoria');
+  if(![...catSel.options].some(o=>o.value==='')){
+    let opt=document.createElement('option'); opt.value=''; opt.text=''; catSel.insertBefore(opt, catSel.firstChild);
+  }
+  catSel.value = '';
+  document.getElementById('tituloPantalla').textContent = ' - TABULACION JUECES';
+  document.getElementById('tituloPrintGrande').textContent = 'RESULTADOS -  - ';
+  document.getElementById('tituloPrintChico').textContent = 'EASY REFEREE -  - ';
+  document.title = 'TABULACION JUECES';
+}
+function actualizarHeaderMaster(){
+  try{
+    // ===== CORRECCION 3 - SI ESTA ENCERADO NO VOLVER A PONER MR QUITO =====
+    if(MASTER_ENCERADO){ encerarFranjaRoja(); return; }
+    const cfg = JSON.parse(localStorage.getItem('easy_competencia')||'{}');
+    let nombre = (cfg.nombre || document.getElementById('evento').value || 'MR QUITO').toUpperCase();
+    let lugar = (cfg.lugar || cfg.ciudad || document.getElementById('lugar').value || 'QUITO').toUpperCase();
+    let modalidad = (document.getElementById('modalidad').value || 'FISICO CULTURISMO').toUpperCase();
+    let categoria = (document.getElementById('categoria').value || 'JUNIOR').toUpperCase();
+    if(cfg.nombre) document.getElementById('evento').value = cfg.nombre.toUpperCase();
+    if(cfg.lugar || cfg.ciudad) document.getElementById('lugar').value = lugar;
+    document.getElementById('tituloPantalla').textContent = nombre + ' - ' + lugar + ' - TABULACION JUECES';
+    document.getElementById('tituloPrintGrande').textContent = 'RESULTADOS - ' + modalidad + ' - ' + categoria;
+    document.getElementById('tituloPrintChico').textContent = 'EASY REFEREE - ' + nombre + ' - ' + lugar;
+    document.title = nombre + ' - TABULACION JUECES';
+  }catch(e){}
+}
+actualizarHeaderMaster();
+let precargaAtletas = null;
+// ===== CORRECCION 4 - SI ESTA ENCERADO NO PRECARGAR TARIMA VIEJA =====
+if(!MASTER_ENCERADO && tarimaActiva && tarimaActiva.atletas && tarimaActiva.atletas.length>0 && tarimaActiva.categoria!='ABSOLUTO'){
+  precargaAtletas = tarimaActiva.atletas.map(a=>{
+    return {
+      num: a.cedula ? a.cedula.slice(-3) : (a.id ? String(a.id).slice(-3) : ''),
+      nombre: a.nombre,
+      gym: (a.gym||'').split('|')[0].trim(),
+      peso: a.peso,
+      talla: a.talla,
+      categoriaOrig: a.categoria,
+      divisionOrig: a.division
+    }
+  });
+  setTimeout(()=>{
+    if(tarimaActiva.modalidad) document.getElementById('modalidad').value = tarimaActiva.modalidad.toUpperCase();
+    if(tarimaActiva.categoria) document.getElementById('categoria').value = tarimaActiva.categoria.toUpperCase();
+    let catSel = document.getElementById('categoria');
+    if(tarimaActiva.categoria && ![...catSel.options].some(o=>o.value.toUpperCase()===tarimaActiva.categoria.toUpperCase())){
+      let opt=document.createElement('option'); opt.value=tarimaActiva.categoria.toUpperCase(); opt.text=tarimaActiva.categoria.toUpperCase(); opt.selected=true; catSel.appendChild(opt);
+    } else if(tarimaActiva.categoria) catSel.value = tarimaActiva.categoria.toUpperCase();
+    if(tarimaActiva.division) document.getElementById('division').value = tarimaActiva.division.toUpperCase();
+    actualizarHeaderMaster();
+    enviarInfo();
+  },50);
+}
+let numJ=3;
+let atletas = precargaAtletas || JSON.parse(localStorage.getItem('afpp_atl')||'[{"num":"006","nombre":"PABLO PICAZO","gym":"INTREPIDOS"},{"num":"003","nombre":"ORLANDO QUIÑONES","gym":"DEMENTES"},{"num":"001","nombre":"PEPITO PEREZ","gym":"SHARK"}]');
+// ===== CORRECCION 5 - SI ESTA ENCERADO ATLETAS EN 0 =====
+if(MASTER_ENCERADO){ atletas = []; }
+let votos = JSON.parse(localStorage.getItem('afpp_vot')||'{}');
+if(precargaAtletas){
+  votos = {};
+  localStorage.setItem('afpp_atl',JSON.stringify(atletas));
+  localStorage.setItem('afpp_vot',JSON.stringify(votos));
+}
+if(MASTER_ENCERADO){
+  votos = {};
+  localStorage.setItem('afpp_atl',JSON.stringify([]));
+  localStorage.setItem('afpp_vot',JSON.stringify({}));
+}
+function save(){localStorage.setItem('afpp_atl',JSON.stringify(atletas));localStorage.setItem('afpp_vot',JSON.stringify(votos)); syncServer();}
+// ===== BASE DE DATOS - ACTUALIZAR PUESTO CON CALCULAR LUGARES =====
+function getBaseDatosMaster(){ try{ return JSON.parse(localStorage.getItem('bw_base_datos')||'[]'); }catch(e){ return []; } }
+function actualizarBaseDatosConLugares(orden){
+  try{
+    if(!orden || orden.length===0) return;
+    if(orden.every(f=>!f.cnt)) return;
+    const cfg = JSON.parse(localStorage.getItem('easy_competencia')||'{}');
+    let campeonato = (cfg.nombre || document.getElementById('evento').value || '').toUpperCase();
+    let anio = cfg.fecha ? cfg.fecha.substring(0,4) : new Date().getFullYear().toString();
+    let modalidadActual = document.getElementById('modalidad').value.toUpperCase();
+    let categoriaActual = document.getElementById('categoria').value.toUpperCase();
+    let base = getBaseDatosMaster();
+    let cambios = 0;
+    orden.forEach(f=>{
+      if(!f.cnt || f.lugar==='-') return;
+      let nombreBuscado = (f.a.nombre||'').toUpperCase().trim();
+      if(!nombreBuscado) return;
+      let idx = -1;
+      idx = base.findIndex(x=> (x.nombre||'').toUpperCase().trim()===nombreBuscado && (x.campeonato||'').toUpperCase()===campeonato && String(x.anio)===String(anio) && (x.modalidad||'').toUpperCase()===modalidadActual);
+      if(idx<0) idx = base.findIndex(x=> (x.nombre||'').toUpperCase().trim()===nombreBuscado && (x.campeonato||'').toUpperCase()===campeonato && String(x.anio)===String(anio));
+      if(idx<0) idx = base.findIndex(x=> (x.nombre||'').toUpperCase().trim()===nombreBuscado && x.puesto==='PENDIENTE');
+      if(idx>=0){
+        base[idx].puesto = String(f.lugar);
+        base[idx].gano = (String(f.lugar)==='1') ? 'SI' : 'NO';
+        base[idx].categoria = base[idx].categoria || categoriaActual;
+        base[idx].modalidad = base[idx].modalidad || modalidadActual;
+        cambios++;
+      }
+    });
+    if(cambios>0){
+      localStorage.setItem('bw_base_datos', JSON.stringify(base));
+      document.getElementById('serverStatus').innerText = '✓ ' + cambios + ' puestos actualizados en Base de Datos';
+    }
+  }catch(e){ console.log('Error base datos master', e); }
+}
+function render(){
+let h=`<th class="col-hash">#</th><th class="col-num">N°</th><th class="col-nombre">NOMBRES DEL ATLETA</th><th class="col-gym">GYM / PROVINCIA</th>`;
+for(let j=1;j<=numJ;j++)h+=`<th class="col-juez">J${j}</th>`;h+=`<th class="col-raw">RAW</th><th class="col-lugar">LUGAR</th><th class="col-x"></th>`;
+document.getElementById('head').innerHTML=h;
+let lista=atletas.map((a,idx)=>{
+  let vals=[];let sum=0,cnt=0;
+  for(let j=1;j<=numJ;j++){let v=votos[idx]?.[j]??"";if(v!==""&&!isNaN(v)){sum+=+v;cnt++;vals.push(+v);}else vals.push("");}
+  let raw=sum; let baja=null, alta=null;
+  let ord=vals.filter(x=>x!=="").sort((a,b)=>a-b);
+  if(document.getElementById('quitar').checked&&ord.length>=3){
+    baja=ord[0]; alta=ord[ord.length-1];
+    raw=ord.slice(1,-1).reduce((s,x)=>s+x,0);
+  }
+  return {idx,a,vals,sum:cnt?raw:99999,rawReal:cnt?raw:0,cnt,baja,alta,ord};
+});
+let orden=[...lista].sort((a,b)=>a.sum-b.sum);
+let puesto=1;orden.forEach((f,i)=>{if(i>0&&f.sum!=orden[i-1].sum)puesto=i+1;f.lugar=f.cnt?puesto:'-';});
+let html="";orden.forEach((f,i)=>{
+  let item=i+1;
+  html+=`<tr><td><div class="box" style="background:#222;color:#ffcc00">${item}</div></td>
+<td><input class="box" value="${f.a.num}" onchange="edit(${f.idx},'num',this.value)"></td>
+<td><input class="box nombre" value="${f.a.nombre}" onchange="edit(${f.idx},'nombre',this.value)"></td>
+<td><input class="box gym" value="${f.a.gym}" onchange="edit(${f.idx},'gym',this.value)"></td>`;
+  for(let j=1;j<=numJ;j++){
+    let v=f.vals[j-1];
+    let esBaja = document.getElementById('quitar').checked && f.cnt>=3 && v!=="" && v===f.baja;
+    let esAlta = document.getElementById('quitar').checked && f.cnt>=3 && v!=="" && v===f.alta;
+    let estiloExtra = (esBaja||esAlta) ? 'background:#ff9800;color:#000;text-decoration:line-through' : '';
+    let titulo = esBaja ? 'BAJA eliminada' : (esAlta ? 'ALTA eliminada' : '');
+    html+=`<td><input class="box" type="number" value="${v}" onchange="editVoto(${f.idx},${j},this.value)" style="width:46px;${estiloExtra}" title="${titulo}"></td>`;
+  }
+  html+=`<td class="raw"><div class="box">${f.cnt?f.rawReal:''}</div></td><td class="lugar"><div class="box">${f.lugar}</div></td><td class="col-x"><button onclick="delAtleta(${f.idx})" style="background:#d50000;color:#fff;border:none;padding:6px 7px;border-radius:4px">X</button></td></tr>`;
+});
+document.getElementById('body').innerHTML=html;
+document.getElementById('numJ').innerText=numJ;
+let tituloTarima = tarimaActiva ? tarimaActiva.nombreTarima : '';
+document.getElementById('estado').innerText = (tituloTarima ? tituloTarima + ' | ' : '') + atletas.length+" atletas";
+let panel=document.getElementById('panelMensajes');
+let msgAB=document.getElementById('msgAltaBaja');
+let msgEmp=document.getElementById('msgEmpate');
+let quitarOn=document.getElementById('quitar').checked;
+if(quitarOn && lista.some(f=>f.cnt>=3)){
+  panel.style.display='block';
+  msgAB.innerText='⚠ QUITAR ALTA Y BAJA ACTIVO: Se elimina la nota más alta y la más baja (naranja tachado)';
+}else{
+  msgAB.innerText='';
+}
+let empates=[];
+for(let i=0;i<orden.length-1;i++){
+  if(orden[i].cnt && orden[i].sum===orden[i+1].sum){
+    empates.push(`${orden[i].a.nombre} = ${orden[i+1].a.nombre} con ${orden[i].sum} pts`);
+  }
+}
+if(empates.length>0){
+  panel.style.display='block';
+  msgEmp.innerText='🔶 EMPATE DETECTADO: '+empates.join(' | ')+' → DESEMPATE POR RAW / VOTO JUEZ PRESIDENTE';
+  msgEmp.style.color='#ff1744';
+}else{
+  if(quitarOn) { msgEmp.innerText='✓ Sin empates'; msgEmp.style.color='#00e676'; }
+  else { msgEmp.innerText=''; }
+}
+if(!quitarOn && empates.length==0) panel.style.display='none';
+ actualizarBaseDatosConLugares(orden);
+ if(orden.length>0) guardarEnAbsolutos(orden);
+}
+function edit(idx,campo,val){atletas[idx][campo]=val.toUpperCase();save();}
+function editVoto(idx,juez,val){if(!votos[idx])votos[idx]={};if(val==="")delete votos[idx][juez];else votos[idx][juez]=parseInt(val);save();render();}
+function addAtleta(){atletas.push({num:"",nombre:"",gym:""});save();render();setTimeout(()=>{let inputs=document.querySelectorAll('#body tr:last-child .box');if(inputs[0])inputs[0].focus();},50);}
+function addJuez(){if(numJ<9){numJ++;render();}else alert("Máx 9");}function delJuez(){if(numJ>3){numJ--;render();}else alert("Mín 3");}
+function delAtleta(idx){if(confirm("¿Borrar?")){atletas.splice(idx,1);let nv={};Object.keys(votos).forEach(k=>{let i=parseInt(k);if(i<idx)nv[i]=votos[k];if(i>idx)nv[i-1]=votos[k];});votos=nv;save();render();}}
+function resetTodo(todo){if(!confirm(todo?"¿Borrar TODO?":"¿Borrar solo votos?"))return;if(todo){atletas=[];votos={};localStorage.removeItem('bw_tarima_activa');localStorage.removeItem('bw_puntuacion_activa');}else votos={};save();render(); if(todo) fetch('/api/atletas',{method:'DELETE'}).catch(()=>{}); fetch('/api/reset_votos',{method:'POST'}).catch(()=>{}); }
+function borrarTodoSistema(){
+  if(!confirm('¿BORRAR TODA LA COMPETENCIA?\n\nBorra evento, base de datos, absolutos, tarima, atletas y votos.\nDespués queda limpio para la siguiente competencia.')) return;
+  ['easy_competencia','bw_base_datos','bw_absolutos','bw_tarima_activa','bw_puntuacion_activa','afpp_atl','afpp_vot','bw_categorias','bw_competencia','bw_tarima','bw_pesaje','bw_master_encerado'].forEach(k=>localStorage.removeItem(k));
+  fetch('/api/atletas',{method:'DELETE'}).catch(()=>{});
+  fetch('/api/reset_votos',{method:'POST'}).catch(()=>{});
+  alert('✅ TODO BORRADO. Recarga y crea tu competencia nueva en configuracion.html');
+  location.reload();
+}
+document.getElementById('quitar').addEventListener('change',render);
+async function enviarInfo(){
+  // ===== CORRECCION 6 - SI ESTA ENCERADO NO MANDAR MR QUITO A JUECES =====
+  if(MASTER_ENCERADO){
+    try{ await fetch('/api/info',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({evento:'',lugar:'',nivel:'',modalidad:'',categoria:'',division:''})}); }catch(e){}
+    document.getElementById('serverStatus').innerText='✓ Encerado - listo para nueva tarima';
+    return;
+  }
+  actualizarHeaderMaster();
+  let info={evento:document.getElementById('evento').value, lugar:document.getElementById('lugar').value, nivel:document.getElementById('nivel').value, modalidad:document.getElementById('modalidad').value, categoria:document.getElementById('categoria').value, division:document.getElementById('division').value};
+  try{await fetch('/api/info',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(info)}); document.getElementById('serverStatus').innerText='✓ Enviado a jueces: '+info.categoria+' '+info.division;}catch(e){document.getElementById('serverStatus').innerText='Modo local - Tarima: '+(tarimaActiva?tarimaActiva.nombreTarima:'');}
+}
+// ===== CORRECCION 7 - ACTUALIZAR AHORA GUARDA LA MARCA ANTES DE RECARGAR =====
+async function actualizarMaster(){
+  MASTER_ENCERADO = true;
+  localStorage.setItem('bw_master_encerado','1');
+  localStorage.removeItem('bw_tarima_activa');
+  localStorage.removeItem('bw_puntuacion_activa');
+  localStorage.removeItem('easy_competencia');
+  localStorage.setItem('afpp_atl',JSON.stringify([]));
+  localStorage.setItem('afpp_vot',JSON.stringify({}));
+  tarimaActiva = null;
+  atletas = []; votos = {};
+  try{ await fetch('/api/info',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({evento:'',lugar:'',nivel:'',modalidad:'',categoria:'',division:''})}); }catch(e){}
+  try{ await fetch('/api/atletas',{method:'DELETE'}).catch(()=>{}); }catch(e){}
+  try{ await fetch('/api/reset_votos',{method:'POST'}).catch(()=>{}); }catch(e){}
+  encerarFranjaRoja();
+  location.reload();
+}
+async function syncServer(){
+  try{
+    for(let a of atletas){ if(!a.num) continue; await fetch('/api/atletas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:a.num,nombre:a.nombre})}).catch(()=>{}); }
+  }catch(e){}
+}
+async function cargarVotosJueces(){
+  try{
+    let r=await fetch('/api/votos'); if(!r.ok) return;
+    let d=await r.json();
+    if(d.votos && Object.keys(d.votos).length>0){
+      let nuevoVotos={};
+      d.atletas.forEach((atl, idxLocal)=>{
+        let miIdx=atletas.findIndex(x=>x.num==atl.id);
+        if(miIdx>=0){
+          let v=d.votos[atl.id]||{};
+          Object.keys(v).forEach(j=>{ if(!nuevoVotos[miIdx]) nuevoVotos[miIdx]={}; nuevoVotos[miIdx][j]=v[j]; });
+        }
+      });
+      if(Object.keys(nuevoVotos).length>0){ votos=nuevoVotos; localStorage.setItem('afpp_vot',JSON.stringify(votos)); render(); }
+    }
+    if(!MASTER_ENCERADO) document.getElementById('serverStatus').innerText='Conectado a jueces ● '+(tarimaActiva?tarimaActiva.nombreTarima:'');
+  }catch(e){}
+}
+async function cargarJuecesActa(){
+  try{
+    let r=await fetch('/api/solicitudes-jueces');
+    let jueces=await r.json();
+    let aprobados=jueces.filter(j=>j.estado==='APROBADO').sort((a,b)=>parseInt(a.juez)-parseInt(b.juez));
+    let div=document.getElementById('listaJuecesActa');
+    if(!aprobados.length){ div.innerHTML='<div style="text-align:center;padding:10px">Sin jueces registrados</div>'; return; }
+    div.innerHTML=aprobados.map(j=>`<div class="firmaRow"><span><b>${j.nombre}</b></span><span>JUEZ ${j.juez}</span><span class="firmaLine">Firma</span></div>`).join('');
+  }catch(e){ document.getElementById('listaJuecesActa').innerHTML='<div style="text-align:center">Sin jueces registrados</div>'; }
+}
+async function imprimirActa(){
+  await cargarJuecesActa();
+  setTimeout(()=>window.print(),300);
+}
+let esModoAbsoluto = false;
+if(tarimaActiva && (tarimaActiva.categoria=='ABSOLUTO' || tarimaActiva.categoria=='ABSOLUTA')){ esModoAbsoluto=true; }
+function actualizarContadorAbs(){
+ let arr=JSON.parse(localStorage.getItem('bw_absolutos')||'[]');
+ let el=document.getElementById('cntAbs'); if(el) el.innerText=arr.length;
+}
+function guardarEnAbsolutos(orden){
+ if(esModoAbsoluto) return;
+ if(!orden || orden.length==0) return;
+ let primero=orden[0];
+ if(primero.cnt==0 || primero.sum>=99999) return;
+ if(primero.lugar!=1) return;
+ let arr=JSON.parse(localStorage.getItem('bw_absolutos')||'[]');
+ let key=`${document.getElementById('modalidad').value}-${document.getElementById('categoria').value}-${document.getElementById('division').value}`.toUpperCase();
+ if(arr.some(g=>g.tarimaKey==key)) { actualizarContadorAbs(); return; }
+ let registro={
+   num: primero.a.num,
+   nombre: primero.a.nombre,
+   gym: (primero.a.gym||'').split('|')[0].trim(),
+   modalidad: document.getElementById('modalidad').value,
+   categoria: document.getElementById('categoria').value,
+   division: document.getElementById('division').value,
+   nombreTarima: tarimaActiva?tarimaActiva.nombreTarima: key,
+   tarimaKey: key
+ };
+ arr.push(registro);
+ localStorage.setItem('bw_absolutos',JSON.stringify(arr));
+ actualizarContadorAbs();
+ document.getElementById('serverStatus').innerText='🏆 '+registro.nombre+' → ABSOLUTO guardado';
+}
+function verAbsolutos(){ window.open('absolutos.html','_blank'); }
+function competirAbsoluto(){
+ let arr=JSON.parse(localStorage.getItem('bw_absolutos')||'[]');
+ if(arr.length==0){ alert('Aún no hay campeones. Termina al menos 2 tarimas.'); return; }
+ if(!confirm(`Cargar ${arr.length} CAMPEONES para ABSOLUTO FINAL?\n\n`+arr.map(a=>a.nombre).join('\n'))) return;
+ atletas = arr.map(a=>{
+   let gymLimpio = (a.gym||'').split('|')[0].trim();
+   return {num:a.num, nombre:a.nombre, gym:gymLimpio};
+ });
+ votos = {};
+ esModoAbsoluto = true;
+ tarimaActiva = {nombreTarima: 'ABSOLUTO FINAL - '+arr[0].modalidad, modalidad: arr[0].modalidad, categoria:'ABSOLUTA', division:'ABSOLUTA'};
+ document.getElementById('modalidad').value = arr[0].modalidad;
+ let catSel = document.getElementById('categoria');
+ if(![...catSel.options].some(o=>o.value.toUpperCase()==='ABSOLUTA')){
+   let opt=document.createElement('option'); opt.value='ABSOLUTA'; opt.text='ABSOLUTA'; opt.selected=true; catSel.appendChild(opt);
+ }
+ catSel.value='ABSOLUTA';
+ document.getElementById('division').value = 'ABSOLUTA';
+ localStorage.setItem('bw_tarima_activa', JSON.stringify(tarimaActiva));
+ save(); render(); enviarInfo();
+ alert('🏆 TARIMA ABSOLUTA CARGADA - DIVISION ABSOLUTA');
+}
+// ===== CORRECCION 8 - AL CARGAR, SI ESTA ENCERADO, DEJAR EN BLANCO =====
+if(MASTER_ENCERADO) encerarFranjaRoja();
+render(); enviarInfo(); setInterval(cargarVotosJueces,1500); actualizarContadorAbs(); cargarJuecesActa();
+</script>
+</body>
+</html>

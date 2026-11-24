@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SOLICITUD JUEZ - B&W</title>
+<style>
+body{margin:0;background:#000;color:#fff;font-family:Arial;text-align:center}
+.header{background:#ffcc00;color:#000;font-weight:bold;padding:14px;font-size:18px;font-family:Arial Black}
+.box{background:#1e1e1e;border:2px solid #ffcc00;border-radius:12px;padding:20px;margin:15px}
+input,select{width:90%;padding:14px;margin:8px 0;font-size:17px;border-radius:8px;border:2px solid #ffcc00;text-align:center;font-weight:bold}
+button{background:#00c853;color:#fff;width:92%;padding:18px;font-size:19px;font-weight:bold;border:none;border-radius:12px;font-family:Arial Black}
+button:disabled{background:#555}
+.footer{padding:15px;font-size:12px;color:#ccc;line-height:1.6;border-top:1px solid #333}
+.footer b{color:#ffcc00}
+#espera{display:none}
+</style></head><body>
+<div class="header">SOLICITUD DE JUEZ</div>
+
+<div class="box" id="form">
+<p style="color:#ffcc00;font-weight:bold;font-size:18px">SOLICITAR PERMISO PARA VOTAR</p>
+<p>Completa tus datos y espera que el organizador te apruebe.</p>
+<input id="nombre" placeholder="NOMBRE">
+<input id="apellido" placeholder="APELLIDO">
+<p>JUEZ N°</p>
+<select id="jNum"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option></select>
+<br><br>
+<button onclick="pedirPermiso()">SOLICITAR PERMISO</button>
+<div id="msg" style="color:#ff5252;font-weight:bold;padding:10px"></div>
+</div>
+
+<div class="box" id="espera">
+<p style="font-size:22px">⏳ ESPERANDO APROBACIÓN...</p>
+<p id="datosEspera" style="color:#ffcc00;font-weight:bold"></p>
+<p>El organizador debe aprobarte desde el sistema principal.<br>No cierres esta página, entrarás automáticamente.</p>
+<button onclick="cancelar()" style="background:#ff5252">CANCELAR SOLICITUD</button>
+</div>
+
+<div class="footer"><b>Desarrollado por Fernando A. Arriaga creador y propietario.</b><br>© 2026 EASY REFEREE - B&W FITNESS<br>Contacto: 0987144752 - alzarriaga593@gmail.com</div>
+
+<script>
+let nombreCompleto="", jNum="";
+
+// Si ya pidió permiso antes y recargó, volver solo a la espera
+let guardadoNombre = localStorage.getItem('juez_nombre');
+let guardadoNum = localStorage.getItem('juez_numero');
+let guardadoEstado = localStorage.getItem('juez_estado');
+if(guardadoNombre && guardadoNum){
+  if(guardadoEstado === 'APROBADO'){
+    location.href = 'juez.html';
+  } else {
+    nombreCompleto = guardadoNombre;
+    jNum = guardadoNum;
+    document.getElementById('form').style.display='none';
+    document.getElementById('espera').style.display='block';
+    document.getElementById('datosEspera').innerText = nombreCompleto + ' - JUEZ ' + jNum;
+    setInterval(revisarAprobacion, 3000);
+  }
+}
+
+async function pedirPermiso(){
+  let n=document.getElementById('nombre').value.trim();
+  let a=document.getElementById('apellido').value.trim();
+  jNum=document.getElementById('jNum').value;
+  if(n.length<2 || a.length<2){document.getElementById('msg').innerText='Escribe nombre y apellido completos'; return;}
+  nombreCompleto = (n + ' ' + a).toUpperCase().trim();
+  // Guardar local para cuando entre a votar
+  localStorage.setItem('juez_nombre', nombreCompleto);
+  localStorage.setItem('juez_numero', jNum);
+  localStorage.setItem('juez_estado', 'PENDIENTE');
+
+  await fetch('/api/solicitud-juez',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nombre:nombreCompleto, juez:jNum, estado:'PENDIENTE'})});
+  document.getElementById('form').style.display='none';
+  document.getElementById('espera').style.display='block';
+  document.getElementById('datosEspera').innerText = nombreCompleto + ' - JUEZ ' + jNum;
+  // Empezar a preguntar cada 3 seg si ya lo aprobaron
+  setInterval(revisarAprobacion, 3000);
+}
+
+async function revisarAprobacion(){
+  try{
+    let r=await fetch('/api/estado-juez?juez='+jNum+'&nombre='+encodeURIComponent(nombreCompleto.toUpperCase().trim()));
+    let d=await r.json();
+    if(d.estado==='APROBADO'){
+      localStorage.setItem('juez_estado','APROBADO');
+      location.href='juez.html';
+    }
+    if(d.estado==='RECHAZADO'){
+      alert('Tu solicitud fue rechazada por el organizador');
+      cancelar();
+    }
+  }catch(e){}
+}
+function cancelar(){
+  localStorage.clear();
+  location.reload();
+}
+</script></body></html>

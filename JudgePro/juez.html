@@ -1,0 +1,67 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EASY REFEREE - VOTACION DE JUECES</title>
+<style>body{margin:0;background:#000;color:#fff;font-family:Arial} .header{background:#ffcc00;color:#000;text-align:center;font-weight:bold;padding:12px;font-size:17px;border:3px solid #000;font-family:Arial Black} .info{background:#000;padding:12px;text-align:center;border:2px solid #ffcc00;border-top:none} .info b{color:#ffcc00;font-size:19px;display:block} .info div{font-weight:bold;font-size:15px;color:#fff} .info small{color:#ffcc00;font-size:13px} .card{background:#1e1e1e;border:2px solid #ffcc00;border-radius:12px;padding:12px;margin:10px;display:flex;justify-content:space-between;align-items:center} .card b{color:#ffcc00} select.lugar{padding:10px;font-size:18px;font-weight:bold;border-radius:8px;width:70px;text-align:center} button.enviar{background:#00c853;color:#fff;width:92%;margin:10px 4%;padding:18px;font-size:20px;font-weight:bold;border:none;border-radius:12px;font-family:Arial Black} .juezSel{background:#222;padding:10px;text-align:center} .footer{padding:15px;text-align:center;font-size:12px;color:#ccc;line-height:1.6;border-top:1px solid #333;margin-top:10px} .footer b{color:#ffcc00} .juezNombre{background:#222;padding:12px;text-align:center;color:#ffcc00;font-weight:bold;font-size:18px;border-bottom:2px solid #ffcc00}</style></head><body>
+<div class="header">EASY REFEREE - VOTACION DE JUECES</div>
+<div class="info"><b id="campeonato">CARGANDO CAMPEONATO...</b><div id="lugarCampeonato"></div><div id="det" style="font-weight:bold;margin-top:4px"></div><small id="eve"></small></div>
+<div class="juezSel"><button onclick="load(true)" style="background:#ffcc00;padding:8px 14px;font-weight:bold;border:none;border-radius:6px;color:#000">↻ ACTUALIZAR</button> <button onclick="salir()" style="background:#000;color:#ffcc00;padding:8px 14px;border:2px solid #ffcc00;border-radius:6px;font-weight:bold">SALIR</button></div>
+<div class="juezNombre" id="juezNombre">JUEZA: ...</div>
+<div id="lista"></div>
+<button class="enviar" onclick="enviar()">ENVIAR CALIFICACION</button><div id="msg" style="text-align:center;color:#00c853;font-weight:bold;padding:10px;font-size:18px"></div>
+
+<div class="footer">
+<b>Desarrollado por Fernando A. Arriaga creador y propietario.</b><br>
+© 2026 EASY REFEREE - B&W FITNESS<br>
+Contacto: 0987144752 - alzarriaga593@gmail.com
+</div>
+
+<script>
+let nombreJuez = localStorage.getItem('juez_nombre');
+let numeroJuez = localStorage.getItem('juez_numero');
+if(!nombreJuez){ location.href='acceso-juez.html'; }
+
+let nom = (nombreJuez||'').toUpperCase();
+document.getElementById('juezNombre').innerText = 'JUEZA: ' + nom + ' - JUEZ N° ' + (numeroJuez||'');
+
+function salir(){ if(confirm('¿Salir y cambiar de juez?')){ localStorage.removeItem('juez_nombre'); localStorage.removeItem('juez_numero'); location.href='acceso-juez.html'; } }
+
+let atletas=[], atletasCache="";
+
+async function load(forzar=false){
+ try{
+  let r=await fetch('/api/votos?t='+Date.now()); let d=await r.json(); 
+  let i=d.info||{};
+  document.getElementById('campeonato').innerText = (i.evento||'CAMPEONATO').toUpperCase();
+  document.getElementById('lugarCampeonato').innerText = (i.lugar||'').toUpperCase();
+  document.getElementById('det').innerText = ((i.categoria||'')+' '+(i.division||'')+' - '+(i.modalidad||'')+' - '+(i.nivel||'')).toUpperCase();
+  document.getElementById('eve').innerText = '';
+
+  let nuevoJSON = JSON.stringify(d.atletas||[]) + '|' + JSON.stringify(d.info||{});
+  if(!forzar && nuevoJSON === atletasCache) return;
+  atletasCache = nuevoJSON;
+
+  let guardado = {};
+  document.querySelectorAll('select.lugar').forEach(s=>guardado[s.id]=s.value);
+
+  atletas=d.atletas||[];
+  let div=document.getElementById('lista'); div.innerHTML='';
+  if(!atletas.length){div.innerHTML='<p style=text-align:center;color:orange;padding:20px>Esperando atletas del MASTER...<br>Agrega atletas en el master</p>'; return;}
+  atletas.forEach(a=>{
+    div.innerHTML+=`<div class="card"><div><b>${a.id}</b> ${a.nombre}</div><div>LUGAR <select class="lugar" id="sel-${a.id}"><option value="-">-</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option></select></div></div>`;
+  });
+  Object.keys(guardado).forEach(id=>{ let el=document.getElementById(id); if(el) el.value=guardado[id]; });
+
+ }catch(e){document.getElementById('campeonato').innerText='SIN CONEXION - Revisa ' + window.location.host;}
+}
+async function enviar(){
+ let juez = numeroJuez; let cals={};
+ atletas.forEach(a=>{
+   let el=document.getElementById('sel-'+a.id);
+   if(el && el.value!='-') cals[a.id]=el.value;
+ });
+ if(Object.keys(cals).length==0){alert('Selecciona al menos un lugar'); return;}
+ await fetch('/api/voto',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({juez, nombreJuez: localStorage.getItem('juez_nombre')||'', calificaciones:cals})});
+ document.getElementById('msg').innerText='✓ ENVIADO JUEZ '+juez+' - '+(localStorage.getItem('juez_nombre')||'')+' - '+new Date().toLocaleTimeString();
+ if(navigator.vibrate) navigator.vibrate(200);
+}
+setInterval(()=>load(false),5000);
+load(true);
+</script></body></html>

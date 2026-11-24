@@ -1,0 +1,179 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ABSOLUTO</title>
+<style>
+body{margin:0;background:#000;color:#fff;font-family:Arial;text-align:center}
+.header{background:linear-gradient(90deg,#ffcc00,#ff9900);color:#000;padding:15px;font-family:Arial Black;font-size:20px;letter-spacing:1px}
+.goldBox{background:linear-gradient(145deg,#1a1a1a,#2a2a2a);border:3px solid #ffcc00;border-radius:15px;margin:15px;padding:15px}
+.champ{ background:#111; border:2px solid #555; border-radius:10px; padding:12px; margin:8px 0; display:flex; justify-content:space-between; align-items:center; text-align:left}
+.champ.ganador{border-color:#ffcc00; background:linear-gradient(90deg,#332a00,#1a1a1a); box-shadow:0 0 15px #ffcc00}
+.btnAdd{background:#ffcc00;color:#000;width:95%;padding:15px;font-weight:bold;border:none;border-radius:10px;margin:10px 0;font-family:Arial Black;font-size:16px}
+.btnVote{background:#00c853;color:#fff;padding:10px 20px;border:none;border-radius:8px;font-weight:bold}
+.btnFinal{background:#9c1a1a;color:#fff;width:95%;padding:18px;font-size:18px;font-family:Arial Black;border:none;border-radius:12px;margin:15px 0}
+input{width:85%;padding:12px;margin:5px;border-radius:8px;border:2px solid #ffcc00;font-size:16px}
+#proyeccionAbs{font-size:28px;color:#ffcc00;font-family:Arial Black;margin-top:10px;min-height:40px}
+.footer{padding:20px 15px 25px 15px;color:#aaa;font-size:12px;line-height:1.6;text-align:center}
+.footer b{color:#fff}
+.footer .descFinal{color:#ccc;font-size:13px;margin-bottom:12px}
+</style></head><body>
+<div class="header" id="tituloAbsoluto">🏆 CAMPEONES ABSOLUTOS MR QUITO 🏆</div>
+
+<div class="goldBox">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <h3 style="color:#ffcc00;margin:0">FINALISTAS ABSOLUTOS (<span id="total">0</span>)</h3>
+    <button onclick="cargarDeVotos()" style="background:#333;color:#fff;padding:5px 10px;border-radius:5px">Cargar ganadores del día</button>
+  </div>
+  <div id="lista"></div>
+  <button class="btnFinal" onclick="declararAbsoluto()">👑 PROYECTAR CAMPEÓN ABSOLUTO 👑</button>
+  <div id="proyeccionAbs"></div>
+</div>
+
+<div class="goldBox">
+  <h3 style="color:#ffcc00;margin:5px">AGREGAR CAMPEÓN DE CATEGORÍA</h3>
+  <input id="nombreCamp" placeholder="NOMBRE CAMPEON (Ej: JUAN GARZON)">
+  <input id="catCamp" placeholder="CATEGORIA QUE GANO (Ej: Mens Physique Senior)">
+  <button class="btnAdd" onclick="agregarCampeon()">+ AGREGAR A FINAL ABSOLUTA</button>
+  <div style="font-size:12px;color:#aaa">Se agregan automáticamente los 1ros lugares de cada categoría. También puedes agregar manual.</div>
+</div>
+
+<div style="padding:10px">
+  <button onclick="location.href='proyector.html'" style="background:#222;color:#ffcc00;padding:10px;border:1px solid #ffcc00;border-radius:8px;width:95%">VER PROYECTOR OFICIAL</button>
+</div>
+
+<div class="footer">
+  <div class="descFinal" id="descripcionAbsoluto">Final Absoluta del MR QUITO - Se enfrentan los campeones de cada categoría para elegir al Campeón Absoluto.</div>
+  Desarrollado por <b>Fernando A. Arriaga</b> creador y propietario.<br>© 2026 EASY REFEREE - B&W FITNESS<br>Contacto: <b>0987144752 - alzarriaga593@gmail.com</b>
+</div>
+
+<script>
+let absolutos = JSON.parse(localStorage.getItem('bw_absolutos')||'[]');
+// Asegurar que todos tengan id para que VOTO y X funcionen aunque vengan del master
+absolutos = absolutos.map((a,i)=> ({...a, id: a.id || (Date.now()+i)}));
+localStorage.setItem('bw_absolutos', JSON.stringify(absolutos));
+
+function getDatosCompetencia(){
+  try{
+    let guardado = JSON.parse(localStorage.getItem('easy_competencia') || '{}');
+    return guardado;
+  }catch(e){ return {}; }
+}
+function aplicarNombreCampeonato(){
+  let comp = getDatosCompetencia();
+  let nombre = (comp.nombre && comp.nombre.trim()) ? comp.nombre.trim().toUpperCase() : 'MR QUITO';
+  let tituloEl = document.getElementById('tituloAbsoluto');
+  if(tituloEl) tituloEl.innerText = '🏆 CAMPEONES ABSOLUTOS ' + nombre + ' 🏆';
+  let descEl = document.getElementById('descripcionAbsoluto');
+  if(descEl){
+    let extra = '';
+    if(comp.tipo) extra += ' • ' + comp.tipo;
+    if(comp.ciudad) extra += ' • ' + comp.ciudad;
+    if(comp.fecha) extra += ' • ' + comp.fecha;
+    if(comp.lugar) extra += ' • ' + comp.lugar;
+    descEl.innerText = 'Final Absoluta del ' + nombre + extra + ' - Se enfrentan los campeones de cada categoría para elegir al Campeón Absoluto.';
+  }
+  document.title = 'ABSOLUTO - ' + nombre;
+}
+aplicarNombreCampeonato();
+
+// ===== BASE DE DATOS - MARCAR CAMPEON ABSOLUTO =====
+function actualizarBaseDatosAbsoluto(ganador){
+  try{
+    let base = JSON.parse(localStorage.getItem('bw_base_datos')||'[]');
+    if(base.length===0) return;
+    let comp = getDatosCompetencia();
+    let campeonato = (comp.nombre || '').toUpperCase();
+    let anio = comp.fecha ? comp.fecha.substring(0,4) : new Date().getFullYear().toString();
+    let nombreBuscado = (ganador.nombre||'').toUpperCase().trim();
+    if(!nombreBuscado) return;
+    let cambios = 0;
+    base.forEach(x=>{
+      let mismoNombre = (x.nombre||'').toUpperCase().trim()===nombreBuscado;
+      let mismoCampeonato = !campeonato || (x.campeonato||'').toUpperCase()===campeonato;
+      let mismoAnio = !comp.fecha || String(x.anio)===String(anio);
+      if(mismoNombre && mismoCampeonato && mismoAnio){
+        x.campeonAbsoluto = 'SI';
+        x.gano = 'SI';
+        if(String(x.puesto)==='PENDIENTE' || !x.puesto) x.puesto = '1';
+        cambios++;
+      }
+    });
+    // Si no estaba en la base porque se agregó manual, lo creamos
+    if(cambios===0){
+      base.push({
+        cedula: '',
+        nombre: ganador.nombre,
+        gym: ganador.gym || '',
+        edad: '',
+        campeonato: campeonato || 'MR QUITO',
+        anio: anio,
+        ciudad: comp.lugar || comp.ciudad || '',
+        modalidad: ganador.modalidad || '',
+        categoria: ganador.categoria || '',
+        division: ganador.division || '',
+        nivel: '',
+        peso: '',
+        talla: '',
+        puesto: '1',
+        gano: 'SI',
+        campeonAbsoluto: 'SI',
+        fechaRegistro: new Date().toISOString()
+      });
+      cambios = 1;
+    }
+    localStorage.setItem('bw_base_datos', JSON.stringify(base));
+    return cambios;
+  }catch(e){ console.log('Error base absoluto', e); return 0; }
+}
+
+function agregarCampeon(){
+ let n=document.getElementById('nombreCamp').value.toUpperCase().trim();
+ let c=document.getElementById('catCamp').value.toUpperCase().trim();
+ if(!n){alert('Nombre');return;}
+ absolutos.push({id:Date.now(), nombre:n, categoria:c, votos:0});
+ localStorage.setItem('bw_absolutos',JSON.stringify(absolutos));
+ document.getElementById('nombreCamp').value=''; document.getElementById('catCamp').value='';
+ render();
+}
+
+async function cargarDeVotos(){
+ try{
+  let r=await fetch('/api/votos'); let data=await r.json();
+  let res = await fetch('/api/resultados');
+  alert('Si ya hiciste finales en el master, agrega manual por ahora: Ej JUAN GARZON - Mens Physique Senior');
+ }catch(e){
+  alert('Agrega manual los campeones por ahora. En la siguiente versión lo conecto automático al /api/votos');
+ }
+}
+
+function votar(id){
+ absolutos = absolutos.map(a=> a.id===id ? {...a, votos:(a.votos||0)+1} : a);
+ localStorage.setItem('bw_absolutos',JSON.stringify(absolutos));
+ render();
+}
+
+function declararAbsoluto(){
+ if(absolutos.length==0){alert('Agrega campeones primero'); return;}
+ let ganador = absolutos.slice().sort((a,b)=>(b.votos||0)-(a.votos||0))[0];
+ let cat = ganador.categoria ? ` - ${ganador.categoria}` : '';
+ document.getElementById('proyeccionAbs').innerHTML=`🏆 CAMPEÓN ABSOLUTO:<br><span style="font-size:35px;color:#fff">${ganador.nombre}</span><br><small style="font-size:16px">${cat}</small><br><small style="font-size:13px;color:#00e676">✓ Guardado en Base de Datos como CAMPEON ABSOLUTO</small>`;
+ localStorage.setItem('bw_campeon_absoluto', JSON.stringify(ganador));
+ actualizarBaseDatosAbsoluto(ganador);
+ try{ fetch('/api/absoluto',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(ganador)}); }catch(e){}
+ if(navigator.vibrate) navigator.vibrate([100,50,200]);
+}
+
+function borrar(id){
+ if(!confirm('¿Borrar de la final?')) return;
+ absolutos=absolutos.filter(a=>a.id!==id);
+ localStorage.setItem('bw_absolutos',JSON.stringify(absolutos));
+ render();
+}
+
+function render(){
+ document.getElementById('total').innerText=absolutos.length;
+ let div=document.getElementById('lista'); div.innerHTML='';
+ absolutos.slice().sort((a,b)=>(b.votos||0)-(a.votos||0)).forEach(a=>{
+  let esG = (Math.max(...absolutos.map(x=>x.votos||0))===a.votos && a.votos>0);
+  div.innerHTML+=`<div class="champ ${esG?'ganador':''}"><div><b>${a.nombre}</b><br><small style="color:#ffcc00">${a.categoria||'CAMPEON'}</small><br><small>VOTOS: ${a.votos||0}</small></div><div><button class="btnVote" onclick="votar(${a.id})">VOTO</button><br><button onclick="borrar(${a.id})" style="background:red;color:#fff;border:none;border-radius:5px;padding:4px 8px;margin-top:5px">X</button></div></div>`;
+ });
+}
+render();
+</script></body></html>

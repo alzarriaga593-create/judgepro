@@ -1,0 +1,356 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AJUSTES DE SISTEMA - EASY REFEREE</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+body{margin:0;background:#000;color:#fff;font-family:Arial}
+.header{background:#ffcc00;color:#000;text-align:center;font-weight:bold;padding:12px;font-size:16px;border:3px solid #000;font-family:Arial Black;display:flex;align-items:center;justify-content:center;position:relative}
+.header .logoEsquina{width:52px;height:52px;object-fit:contain;background:#fff;border-radius:50%;padding:2px;position:absolute;left:12px;top:50%;transform:translateY(-50%)}
+.header .textoHeader{width:100%;text-align:center}
+#tituloEvento{font-size:28px;line-height:1.1;display:block;text-align:center}
+.subHeader{background:#111;color:#ffcc00;text-align:center;padding:6px;font-size:11px;letter-spacing:1px}
+.wrap{padding:12px;max-width:1280px;margin:0 auto}
+.card{background:#111;border:2px solid #ffcc00;border-radius:12px;padding:12px;margin-bottom:12px}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+.stat{background:#1e1e1e;border:1px solid #333;border-radius:10px;padding:10px;text-align:center}
+.stat b{display:block;font-size:22px;color:#ffcc00;font-family:Arial Black}
+.stat span{font-size:11px;color:#aaa}
+input,select{width:100%;padding:10px;margin:5px 0;font-size:14px;border-radius:8px;border:2px solid #ffcc00;background:#000;color:#fff;box-sizing:border-box}
+.btn{padding:12px 14px;border:none;border-radius:10px;font-weight:bold;font-size:13px;cursor:pointer;font-family:Arial Black;margin:4px 2px}
+.btnAmarillo{background:#ffcc00;color:#000}
+.btnVerde{background:#00c853;color:#fff}
+.btnRojo{background:#d50000;color:#fff}
+.btnGris{background:#222;color:#fff;border:1px solid #555}
+.btnNaranja{background:#ff9800;color:#000}
+#mensajeExito{display:none;background:#00c853;color:#fff;text-align:center;font-weight:bold;padding:12px;border-radius:10px;margin-bottom:12px;font-size:14px}
+#mensajeError{display:none;background:#d50000;color:#fff;text-align:center;font-weight:bold;padding:12px;border-radius:10px;margin-bottom:12px;font-size:14px}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:900px}
+th{background:#7a5a00;color:#ffcc00;padding:8px 4px;border:1px solid #000;text-align:center}
+td{background:#1e1e1e;padding:6px 4px;border:1px solid #333;text-align:center}
+.badgePuesto{background:#ffcc00;color:#000;padding:2px 7px;border-radius:10px;font-weight:bold}
+.badgeGano{background:#00c853;color:#fff;padding:2px 7px;border-radius:10px;font-weight:bold}
+.badgeAbs{background:#ffcc00;color:#000;padding:2px 7px;border-radius:10px;font-weight:bold;border:2px solid #fff}
+.badgePend{background:#333;color:#ffcc00;padding:2px 7px;border-radius:10px}
+.filtros{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+@media(min-width:900px){ .filtros{grid-template-columns:1fr 1fr 1fr 1fr} .header{font-size:20px} #tituloEvento{font-size:36px} }
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:99;align-items:center;justify-content:center;padding:15px}
+.modal.open{display:flex}
+.modalBox{background:#111;border:2px solid #ffcc00;border-radius:12px;padding:15px;width:100%;max-width:500px;max-height:90vh;overflow:auto}
+.modalBox label{display:block;font-size:11px;color:#ffcc00;font-weight:bold;margin:10px 0 2px;text-align:left}
+/* BOTON EDITAR REGISTRO - BIEN VISIBLE */
+.btnEditarRegistro{background:#ffcc00;color:#000;border:2px solid #fff;border-radius:8px;padding:10px 12px;font-weight:bold;font-size:12px;font-family:Arial Black;cursor:pointer;width:100%;white-space:nowrap}
+.btnEliminar{width:100%;background:#d50000;color:#fff;border:none;border-radius:8px;padding:7px;font-weight:bold;font-size:11px;cursor:pointer;margin-top:5px}
+td.accion{min-width:150px}
+</style></head><body>
+<div class="header"><img src="logo2.png" class="logoEsquina" alt="EASY REFEREE"><div class="textoHeader"><span id="tituloEvento">AJUSTES DE SISTEMA</span></div></div>
+<div class="subHeader">BASE DE DATOS • HISTORIAL COMPLETO DE ATLETAS • EASY REFEREE</div>
+
+<div class="wrap">
+<div id="mensajeExito"></div>
+<div id="mensajeError"></div>
+
+<div class="stats">
+<div class="stat"><b id="statTotal">0</b><span>ATLETAS REGISTRADOS</span></div>
+<div class="stat"><b id="statGanadores">0</b><span>GANADORES 1ER LUGAR</span></div>
+<div class="stat"><b id="statAbsolutos">0</b><span>CAMPEONES ABSOLUTOS</span></div>
+<div class="stat"><b id="statNovatos">0</b><span>NOVATOS REGISTRADOS</span></div>
+</div>
+
+<div class="card">
+<div style="text-align:center">
+<button class="btn btnVerde" onclick="exportarBase()">⬇ EXPORTAR BASE DE DATOS</button>
+<button class="btn btnAmarillo" onclick="document.getElementById('fileImport').click()">⬆ IMPORTAR BASE DE DATOS</button>
+<input type="file" id="fileImport" accept=".csv,.xlsx,.xls,.json" style="display:none" onchange="importarBase(this)">
+<button class="btn btnGris" onclick="hacerRespaldo()">💾 RESPALDO SEGURIDAD</button>
+<button class="btn btnNaranja" onclick="location.href='configuracion.html'">⚙️ VOLVER A CONFIGURACIÓN</button>
+</div>
+<div style="font-size:11px;color:#aaa;text-align:center;margin-top:8px">Importar acepta el archivo que exportaste de aquí mismo (CSV). Si importas el mismo atleta 2 veces, no se duplica, se actualiza.</div>
+</div>
+
+<div class="card">
+<h3 style="color:#ffcc00;margin:0 0 8px;text-align:center">🔍 BUSCAR ATLETA</h3>
+<input id="busqueda" placeholder="ESCRIBE CÉDULA O NOMBRE... Ej: 1712345678 o JUAN" oninput="render()">
+<div class="filtros">
+<select id="filtroAnio" onchange="render()"><option value="">TODOS LOS AÑOS</option></select>
+<select id="filtroNivel" onchange="render()"><option value="">TODOS LOS NIVELES</option><option>NOVATO</option><option>CLASIFICADO</option><option>OPEN</option></select>
+<select id="filtroPuesto" onchange="render()"><option value="">TODOS LOS PUESTOS</option><option value="1">SOLO 1ER LUGAR</option><option value="PENDIENTE">SOLO PENDIENTES</option><option value="ABSOLUTO">SOLO CAMPEONES ABSOLUTOS</option></select>
+<select id="filtroCampeonato" onchange="render()"><option value="">TODOS LOS CAMPEONATOS</option></select>
+</div>
+</div>
+
+<div class="card">
+<div style="display:flex;justify-content:space-between;align-items:center"><h3 style="color:#ffcc00;margin:0">ATLETAS (<span id="totalFiltrado">0</span>)</h3><button class="btn btnRojo" style="padding:8px 10px;font-size:11px" onclick="borrarTodaBase()">🗑 BORRAR TODA LA BASE</button></div>
+<div style="font-size:12px;color:#ffcc00;text-align:center;margin-top:8px">✏️ Para corregir un nombre mal escrito o una equivocación, dale a <b>EDITAR REGISTRO</b> en la fila de ese atleta.</div>
+<div style="overflow:auto;margin-top:10px">
+<table><thead><tr><th>CÉDULA</th><th>NOMBRE</th><th>CAMPEONATO</th><th>AÑO</th><th>MODALIDAD</th><th>NIVEL</th><th>PUESTO</th><th>ABSOLUTO</th><th>EDITAR REGISTRO</th></tr></thead><tbody id="tablaBase"></tbody></table>
+</div>
+<div id="vacio" style="text-align:center;color:#aaa;padding:20px;display:none">Aún no hay atletas. Pesando hoy se llena sola.</div>
+</div>
+
+<div style="text-align:center;padding:10px">
+<button class="btn btnGris" onclick="location.href='pesaje.html'">← VOLVER A PESAJE</button>
+<button class="btn btnGris" onclick="location.href='master.html'">IR A MASTER →</button>
+</div>
+<div style="text-align:center;color:#aaa;font-size:12px;padding:10px;line-height:1.6">Desarrollado por Fernando A. Arriaga creador y propietario.<br>© 2026 EASY REFEREE - B&W FITNESS<br>Contacto: 0987144752 - alzarriaga593@gmail.com</div>
+</div>
+
+<div class="modal" id="modalEditar"><div class="modalBox">
+<h3 style="color:#ffcc00;text-align:center">✏️ EDITAR REGISTRO</h3>
+<div style="font-size:12px;color:#aaa;text-align:center">Corrige aquí el nombre mal escrito o cualquier equivocación y dale a GUARDAR CAMBIOS.</div>
+<label>NOMBRE COMPLETO</label><input id="e_nombre" placeholder="NOMBRE CORRECTO">
+<label>CÉDULA</label><input id="e_cedula" placeholder="CÉDULA">
+<label>GYM</label><input id="e_gym" placeholder="GYM">
+<label>EDAD</label><input id="e_edad" placeholder="EDAD">
+<label>PESO</label><input id="e_peso" placeholder="PESO">
+<label>TALLA</label><input id="e_talla" placeholder="TALLA">
+<label>CIUDAD</label><input id="e_ciudad" placeholder="CIUDAD">
+<label>CAMPEONATO</label><input id="e_campeonato" placeholder="CAMPEONATO">
+<label>AÑO</label><input id="e_anio" placeholder="AÑO">
+<label>MODALIDAD</label><input id="e_modalidad" placeholder="MODALIDAD">
+<label>CATEGORÍA</label><input id="e_categoria" placeholder="CATEGORÍA">
+<label>DIVISIÓN</label><input id="e_division" placeholder="DIVISIÓN">
+<label>NIVEL</label><select id="e_nivel"><option>NOVATO</option><option>CLASIFICADO</option><option>OPEN</option></select>
+<label>PUESTO</label><select id="e_puesto"><option>PENDIENTE</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
+<label>¿GANÓ?</label><select id="e_gano"><option value="NO">GANO: NO</option><option value="SI">GANO: SI</option></select>
+<label>¿CAMPEÓN ABSOLUTO?</label><select id="e_absoluto"><option value="NO">CAMPEON ABSOLUTO: NO</option><option value="SI">CAMPEON ABSOLUTO: SI</option></select>
+<button class="btn btnVerde" style="width:100%" onclick="guardarEdicion()">GUARDAR CAMBIOS ✓</button>
+<button class="btn btnGris" style="width:100%" onclick="cerrarModal()">CANCELAR</button>
+</div></div>
+
+<script>
+let indiceEditando = -1;
+function getBase(){ try{ return JSON.parse(localStorage.getItem('bw_base_datos')||'[]'); }catch(e){ return []; } }
+function setBase(d){ localStorage.setItem('bw_base_datos', JSON.stringify(d)); }
+function mostrarExito(texto){
+  let el = document.getElementById('mensajeExito');
+  el.innerText = '✓ ' + texto;
+  el.style.display = 'block';
+  window.scrollTo({top:0, behavior:'smooth'});
+  if(navigator.vibrate) navigator.vibrate(100);
+  setTimeout(()=>{ el.style.display='none'; }, 3500);
+}
+function mostrarError(texto){
+  let el = document.getElementById('mensajeError');
+  el.innerText = '⚠️ ' + texto;
+  el.style.display = 'block';
+  setTimeout(()=>{ el.style.display='none'; }, 4000);
+}
+function llenarFiltros(){
+  let base = getBase();
+  let anios = [...new Set(base.map(x=>x.anio))].filter(Boolean).sort().reverse();
+  let camps = [...new Set(base.map(x=>x.campeonato))].filter(Boolean).sort();
+  let selAnio = document.getElementById('filtroAnio');
+  let selCamp = document.getElementById('filtroCampeonato');
+  let actualAnio = selAnio.value; let actualCamp = selCamp.value;
+  selAnio.innerHTML = '<option value="">TODOS LOS AÑOS</option>' + anios.map(a=>`<option>${a}</option>`).join('');
+  selCamp.innerHTML = '<option value="">TODOS LOS CAMPEONATOS</option>' + camps.map(c=>`<option>${c}</option>`).join('');
+  selAnio.value = actualAnio; selCamp.value = actualCamp;
+}
+function render(){
+  let base = getBase();
+  document.getElementById('statTotal').innerText = base.length;
+  document.getElementById('statGanadores').innerText = base.filter(x=> String(x.puesto)==='1' || x.gano==='SI').length;
+  document.getElementById('statAbsolutos').innerText = base.filter(x=> x.campeonAbsoluto==='SI').length;
+  document.getElementById('statNovatos').innerText = base.filter(x=> (x.nivel||'').toUpperCase()==='NOVATO').length;
+  llenarFiltros();
+  let q = (document.getElementById('busqueda').value||'').toUpperCase().trim();
+  let fAnio = document.getElementById('filtroAnio').value;
+  let fNivel = document.getElementById('filtroNivel').value;
+  let fPuesto = document.getElementById('filtroPuesto').value;
+  let fCamp = document.getElementById('filtroCampeonato').value;
+  let filtrados = base.map((x,i)=> ({...x, _idx:i})).filter(x=>{
+    if(q && !String(x.cedula||'').includes(q) && !(x.nombre||'').toUpperCase().includes(q)) return false;
+    if(fAnio && String(x.anio)!==String(fAnio)) return false;
+    if(fNivel && (x.nivel||'').toUpperCase()!==fNivel) return false;
+    if(fCamp && (x.campeonato||'')!==fCamp) return false;
+    if(fPuesto==='1' && String(x.puesto)!=='1') return false;
+    if(fPuesto==='PENDIENTE' && x.puesto!=='PENDIENTE') return false;
+    if(fPuesto==='ABSOLUTO' && x.campeonAbsoluto!=='SI') return false;
+    return true;
+  });
+  document.getElementById('totalFiltrado').innerText = filtrados.length;
+  let tbody = document.getElementById('tablaBase');
+  document.getElementById('vacio').style.display = filtrados.length===0 ? 'block' : 'none';
+  tbody.innerHTML = filtrados.slice().reverse().map(x=>{
+    let puestoHtml = x.puesto==='PENDIENTE' ? '<span class="badgePend">PENDIENTE</span>' : (String(x.puesto)==='1' ? '<span class="badgeGano">🥇 1</span>' : `<span class="badgePuesto">${x.puesto}</span>`);
+    let absHtml = x.campeonAbsoluto==='SI' ? '<span class="badgeAbs">👑 SI</span>' : 'NO';
+    return `<tr><td>${x.cedula||'-'}</td><td style="text-align:left"><b>${x.nombre||''}</b><br><small style="color:#aaa">${x.gym||''} ${x.categoria? '| '+x.categoria:''}</small></td><td>${x.campeonato||''}</td><td>${x.anio||''}</td><td style="text-align:left">${x.modalidad||''}</td><td>${x.nivel||''}</td><td>${puestoHtml}</td><td>${absHtml}</td><td class="accion"><button class="btnEditarRegistro" onclick="editarAtleta(${x._idx})">✏️ EDITAR REGISTRO</button><button class="btnEliminar" onclick="borrarAtleta(${x._idx})">🗑 ELIMINAR</button></td></tr>`;
+  }).join('');
+}
+function editarAtleta(idx){
+  let base = getBase(); let a = base[idx]; if(!a) return;
+  indiceEditando = idx;
+  document.getElementById('e_nombre').value = a.nombre||'';
+  document.getElementById('e_cedula').value = a.cedula||'';
+  document.getElementById('e_gym').value = a.gym||'';
+  document.getElementById('e_edad').value = a.edad||'';
+  document.getElementById('e_peso').value = a.peso||'';
+  document.getElementById('e_talla').value = a.talla||'';
+  document.getElementById('e_ciudad').value = a.ciudad||'';
+  document.getElementById('e_campeonato').value = a.campeonato||'';
+  document.getElementById('e_anio').value = a.anio||'';
+  document.getElementById('e_modalidad').value = a.modalidad||'';
+  document.getElementById('e_categoria').value = a.categoria||'';
+  document.getElementById('e_division').value = a.division||'';
+  document.getElementById('e_nivel').value = a.nivel||'NOVATO';
+  document.getElementById('e_puesto').value = a.puesto||'PENDIENTE';
+  document.getElementById('e_gano').value = a.gano||'NO';
+  document.getElementById('e_absoluto').value = a.campeonAbsoluto||'NO';
+  document.getElementById('modalEditar').classList.add('open');
+}
+function cerrarModal(){ document.getElementById('modalEditar').classList.remove('open'); indiceEditando=-1; }
+function guardarEdicion(){
+  let base = getBase(); if(indiceEditando<0) return;
+  let nuevoNombre = document.getElementById('e_nombre').value.toUpperCase().trim();
+  if(!nuevoNombre){ alert('El nombre no puede quedar vacío'); return; }
+  base[indiceEditando] = {
+    ...base[indiceEditando],
+    nombre: nuevoNombre,
+    cedula: document.getElementById('e_cedula').value.trim(),
+    gym: document.getElementById('e_gym').value.toUpperCase().trim(),
+    edad: document.getElementById('e_edad').value.trim(),
+    peso: document.getElementById('e_peso').value.trim(),
+    talla: document.getElementById('e_talla').value.trim(),
+    ciudad: document.getElementById('e_ciudad').value.toUpperCase().trim(),
+    campeonato: document.getElementById('e_campeonato').value.toUpperCase().trim(),
+    anio: document.getElementById('e_anio').value.trim(),
+    modalidad: document.getElementById('e_modalidad').value.toUpperCase().trim(),
+    categoria: document.getElementById('e_categoria').value.toUpperCase().trim(),
+    division: document.getElementById('e_division').value.toUpperCase().trim(),
+    nivel: document.getElementById('e_nivel').value,
+    puesto: document.getElementById('e_puesto').value,
+    gano: document.getElementById('e_gano').value,
+    campeonAbsoluto: document.getElementById('e_absoluto').value
+  };
+  setBase(base); cerrarModal(); render();
+  mostrarExito('REGISTRO CORREGIDO - BASE DE DATOS ACTUALIZADA CON ÉXITO');
+}
+function borrarAtleta(idx){
+  let base = getBase(); let a = base[idx];
+  if(!confirm(`¿Borrar a ${a.nombre} - ${a.campeonato} ${a.anio}?\nEsta acción no se puede deshacer, haz un respaldo primero.`)) return;
+  base.splice(idx,1); setBase(base); render();
+  mostrarExito('ATLETA ELIMINADO - BASE DE DATOS ACTUALIZADA');
+}
+function borrarTodaBase(){
+  let base = getBase();
+  if(base.length===0){ mostrarError('La base ya está vacía'); return; }
+  if(!confirm(`¿BORRAR TODA LA BASE? Son ${base.length} registros.\n\nHaz clic en RESPALDO SEGURIDAD primero si no quieres perderlos.`)) return;
+  if(!confirm('¿Estás SEGURO? Esta es la segunda confirmación.')) return;
+  setBase([]); render();
+  mostrarExito('BASE DE DATOS BORRADA');
+}
+// ===== FORMATO UNICO EASY REFEREE - SIEMPRE EN ESTE ORDEN =====
+const COLUMNAS_UNICAS = ['Numero','Nombre','Gym','Cedula','Edad','Peso','Talla','Modalidad','Categoria','Division','Nivel','Campeonato','Anio','Ciudad','Puesto','Gano','CampeonAbsoluto'];
+function exportarBase(){
+  let base = getBase();
+  if(base.length===0){ mostrarError('No hay datos para exportar'); return; }
+  let filas = base.map(a => [
+    a.numero||'', a.nombre||'', a.gym||'', a.cedula||'', a.edad||'',
+    a.peso||'', a.talla||'', a.modalidad||'', a.categoria||'', a.division||'', a.nivel||'',
+    a.campeonato||'', a.anio||'', a.ciudad||'', a.puesto||'PENDIENTE', a.gano||'NO', a.campeonAbsoluto||'NO'
+  ]);
+  let ws = XLSX.utils.aoa_to_sheet([COLUMNAS_UNICAS, ...filas]);
+  ws['!cols'] = COLUMNAS_UNICAS.map(()=>({wch:18}));
+  let wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Base Datos');
+  XLSX.writeFile(wb, 'BASE_DATOS_EASY_REFEREE.xlsx');
+  mostrarExito('BASE EXPORTADA EN FORMATO UNICO - ' + base.length + ' atletas');
+}
+function hacerRespaldo(){
+  let base = getBase();
+  if(base.length===0){ mostrarError('No hay datos para respaldar'); return; }
+  let fecha = new Date().toISOString().slice(0,10);
+  let blob = new Blob([JSON.stringify(base,null,2)], {type:'application/json'});
+  let url = URL.createObjectURL(blob);
+  let al = document.createElement('a'); al.href=url; al.download='RESPALDO_EASY_REFEREE_'+fecha+'.json'; al.click();
+  URL.revokeObjectURL(url);
+  mostrarExito('RESPALDO CREADO CON ÉXITO - Guárdalo en tu celular');
+}
+// ===== IMPORTADOR INTELIGENTE - ACEPTA CUALQUIER ORDEN Y NOMBRE =====
+function normalizarClaveBase(k){
+  return String(k||'').toUpperCase().trim()
+    .replace(/Á/g,'A').replace(/É/g,'E').replace(/Í/g,'I').replace(/Ó/g,'O').replace(/Ú/g,'U').replace(/Ñ/g,'N')
+    .replace(/\./g,'').replace(/_/g,' ').replace(/\s+/g,' ').trim();
+}
+function buscarCol(o, lista){
+  for(let n of lista){
+    if(o[n] !== undefined && String(o[n]).trim() !== '') return String(o[n]).trim();
+  }
+  return '';
+}
+function importarBase(input){
+  let file = input.files[0]; if(!file) return;
+  let reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      let filas = [];
+      if(file.name.toLowerCase().endsWith('.json')){
+        filas = JSON.parse(e.target.result);
+        let base = getBase();
+        let agregados=0, actualizados=0;
+        filas.forEach(n=>{
+          let idx = base.findIndex(x=> String(x.cedula)===String(n.cedula) && String(x.campeonato||'').toUpperCase()===String(n.campeonato||'').toUpperCase() && String(x.anio)===String(n.anio) && String(x.modalidad||'').toUpperCase()===String(n.modalidad||'').toUpperCase());
+          if(idx>=0){ base[idx]={...base[idx],...n}; actualizados++; }
+          else { base.push(n); agregados++; }
+        });
+        setBase(base); input.value=''; render();
+        mostrarExito(`BASE IMPORTADA - ${agregados} nuevos, ${actualizados} actualizados`);
+        return;
+      }
+      if(file.name.toLowerCase().endsWith('.csv')){
+        let texto = e.target.result;
+        let lineas = texto.split(/\r?\n/).filter(l=>l.trim());
+        let headers = lineas[0].split(',').map(h=>h.replace(/"/g,'').trim());
+        for(let i=1;i<lineas.length;i++){
+          let cols = lineas[i].match(/(".*?"|[^,]+)(?=\s*,|\s*$)/g) || [];
+          cols = cols.map(c=>c.replace(/^"|"$/g,'').replace(/""/g,'"'));
+          let obj = {};
+          headers.forEach((h,hi)=>{ obj[h]=cols[hi]||''; });
+          filas.push(obj);
+        }
+      } else {
+        const data = new Uint8Array(e.target.result);
+        const wb = XLSX.read(data, {type:'array'});
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        filas = XLSX.utils.sheet_to_json(ws, {defval:''});
+      }
+      if(!filas.length){ mostrarError('El archivo está vacío'); return; }
+      let base = getBase();
+      let agregados=0, actualizados=0, saltados=0;
+      filas.forEach(f=>{
+        let o = {};
+        Object.keys(f).forEach(k=>{ o[normalizarClaveBase(k)] = f[k]; });
+        let nombreSolo = buscarCol(o, ['NOMBRE','NOMBRE COMPLETO','ATLETA','NOMBRE ATLETA','NOMBRES']);
+        let apellidoSolo = buscarCol(o, ['APELLIDO','APELLIDOS','APELLIDO ATLETA']);
+        let nombre = (nombreSolo + (apellidoSolo ? ' ' + apellidoSolo : '')).trim().toUpperCase();
+        if(!nombre){ saltados++; return; }
+        let n = {
+          numero: buscarCol(o, ['NUMERO','N','NUM','N°','NO','NRO']),
+          nombre: nombre,
+          gym: buscarCol(o, ['GYM','GYM / EQUIPO','EQUIPO','GIMNASIO','TEAM']).toUpperCase(),
+          cedula: buscarCol(o, ['CEDULA','CI','C I','IDENTIFICACION','DNI','DOCUMENTO']),
+          edad: buscarCol(o, ['EDAD','ANOS','AÑOS','ANOS']),
+          peso: buscarCol(o, ['PESO','PESO KG','PESO EN KG','KG']),
+          talla: buscarCol(o, ['TALLA','TALLA CM','ESTATURA','ALTURA','TALLA EN CM','CM']),
+          modalidad: buscarCol(o, ['MODALIDAD']).toUpperCase(),
+          categoria: buscarCol(o, ['CATEGORIA','CAT','CATEGORIA EDAD']).toUpperCase(),
+          division: buscarCol(o, ['DIVISION','DIV','DIVISION PESO','DIVISION TALLA']).toUpperCase(),
+          nivel: buscarCol(o, ['NIVEL','NIVEL COMPETENCIA']).toUpperCase(),
+          campeonato: buscarCol(o, ['CAMPEONATO','EVENTO','COMPETENCIA','NOMBRE CAMPEONATO']).toUpperCase(),
+          anio: buscarCol(o, ['ANIO','ANO','YEAR']),
+          ciudad: buscarCol(o, ['CIUDAD','LUGAR','SEDE']).toUpperCase(),
+          puesto: buscarCol(o, ['PUESTO','POSICION','RANKING']) || 'PENDIENTE',
+          gano: buscarCol(o, ['GANO','GANADOR']) || 'NO',
+          campeonAbsoluto: buscarCol(o, ['CAMPEON ABSOLUTO','ABSOLUTO','CAMPEON','CAMPEON OVERALL','CAMPEONABSOLUTO']) || 'NO',
+        };
+        let idx = base.findIndex(x=> String(x.cedula)===String(n.cedula) && String(x.cedula)!=='' && String(x.campeonato||'').toUpperCase()===String(n.campeonato||'').toUpperCase() && String(x.anio)===String(n.anio) && String(x.modalidad||'').toUpperCase()===String(n.modalidad||'').toUpperCase());
+        if(idx>=0){ base[idx] = {...base[idx], ...n}; actualizados++; }
+        else { base.push({...n, fechaRegistro: new Date().toISOString()}); agregados++; }
+      });
+      setBase(base); input.value=''; render();
+      mostrarExito(`BASE IMPORTADA - ${agregados} nuevos, ${actualizados} actualizados` + (saltados ? `, ${saltados} sin nombre` : ''));
+    }catch(err){ mostrarError('No se pudo importar: ' + err.message); }
+  };
+  if(file.name.toLowerCase().endsWith('.csv') || file.name.toLowerCase().endsWith('.json')) reader.readAsText(file);
+  else reader.readAsArrayBuffer(file);
+}
+render();
+</script></body></html>

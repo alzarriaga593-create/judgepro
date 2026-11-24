@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>APROBAR JUECES</title>
+<style>body{margin:0;background:#000;color:#fff;font-family:Arial} .header{background:#ffcc00;color:#000;text-align:center;font-weight:bold;padding:14px;font-family:Arial Black} .card{background:#1e1e1e;border:2px solid #ffcc00;border-radius:12px;padding:15px;margin:10px;display:flex;justify-content:space-between;align-items:center} button{padding:10px 15px;font-weight:bold;border:none;border-radius:8px;font-size:15px} .ok{background:#00c853;color:#fff} .no{background:#ff5252;color:#fff} .aprobado{border-color:#00c853}</style></head><body>
+<div class="header">APROBACIÓN DE JUECES - SOLO ORGANIZADOR</div>
+<div id="lista" style="padding:10px">Cargando solicitudes...</div>
+<script>
+async function load(){
+  let r=await fetch('/api/solicitudes-jueces'); let d=await r.json();
+  let div=document.getElementById('lista'); div.innerHTML='';
+  if(!d.length){div.innerHTML='<p style=text-align:center>Sin solicitudes por ahora. Los jueces deben entrar a acceso-juez.html</p>'; return;}
+  d.forEach(j=>{
+    div.innerHTML+=`<div class="card ${j.estado==='APROBADO'?'aprobado':''}"><div><b>${j.nombre}</b><br>JUEZ ${j.juez} - ${j.estado}</div><div>${j.estado==='PENDIENTE'?`<button class="ok" onclick="accion('${j.juez}','${j.nombre}','APROBADO')">✓ APROBAR</button> <button class="no" onclick="accion('${j.juez}','${j.nombre}','RECHAZADO')">✕ RECHAZAR</button>`:''}</div></div>`;
+  });
+}
+async function accion(juez,nombre,estado){
+  await fetch('/api/aprobar-juez',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({juez,nombre,estado})});
+  load();
+}
+setInterval(load,3000); load();
+</script></body></html>

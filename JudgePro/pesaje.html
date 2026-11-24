@@ -1,0 +1,690 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PESAJE - FERNANDO ARRIAGA</title>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+body{margin:0;background:#000;color:#fff;font-family:Arial}
+.header{background:#ffcc00;color:#000;text-align:center;font-weight:bold;padding:12px;font-size:16px;border:3px solid #000;font-family:Arial Black;line-height:1.2;display:flex;align-items:center;justify-content:center;position:relative}
+.header .logoEsquina{width:52px;height:52px;object-fit:contain;background:#fff;border-radius:50%;padding:2px;position:absolute;left:12px;top:50%;transform:translateY(-50%)}
+.header .textoHeader{width:100%;text-align:center}
+#tituloEvento{font-size:32px;line-height:1.1;display:block;text-align:center}
+.subHeader{background:#111;color:#ffcc00;text-align:center;padding:6px;font-size:11px;letter-spacing:1px}
+.footerPesaje{text-align:center;padding:20px 10px 25px;color:#aaa;font-size:13px;line-height:1.6;border-top:1px solid #333;margin:20px 10px 0}
+.form{padding:15px;background:#111;margin:10px;border:2px solid #ffcc00;border-radius:12px}
+.form input,.form select{width:95%;padding:10px;margin:5px 0;font-size:16px;border-radius:8px;border:2px solid #ffcc00;background:#000;color:#fff;box-sizing:border-box}
+.form button{background:#00c853;color:#fff;width:100%;padding:15px;font-size:18px;font-weight:bold;border:none;border-radius:10px;margin-top:10px;font-family:Arial Black}
+.lista{margin:10px} .atleta{background:#1e1e1e;border:1px solid #ffcc00;border-radius:8px;padding:10px;margin:5px 0;display:flex;justify-content:space-between}
+.badge{background:#ffcc00;color:#000;padding:2px 8px;border-radius:5px;font-weight:bold;font-size:12px}
+.btns{padding:10px;text-align:center} .btns button{padding:12px 20px;margin:5px;font-weight:bold;border-radius:8px;border:none}
+#alertaPeso{padding:10px;border-radius:8px;margin:5px 0;font-weight:bold;display:none;text-align:center}
+.ok{background:#00c853;color:#fff} .error{background:#9c1a1a;color:#fff} .warn{background:#ffcc00;color:#000}
+.btnEspecial{background:#222 !important;color:#ffcc00 !important;border:2px dashed #ffcc00 !important;font-size:13px !important;padding:10px !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.btnModalidad{background:#111 !important;color:#00e676 !important;border:2px dashed #00e676 !important;font-size:13px !important;padding:10px !important}
+.btnBorrar{background:#1a0000 !important;color:#ff5252 !important;border:1px dashed #ff5252 !important;font-size:11px !important;padding:8px !important}
+.btnDivision{background:#111 !important;color:#ff9100 !important;border:2px dashed #ff9100 !important;font-size:13px !important;padding:10px !important}
+.inputRow{display:flex;gap:5px}
+.inputRow input{flex:1}
+.numeroBadge{background:#fff;color:#000;padding:2px 6px;border-radius:50%;font-weight:bold;font-family:Arial Black}
+#modalidad{border-color:#00e676 !important;background:#0a1a12 !important}
+#categoria{border-color:#2979ff !important;background:#0a1220 !important}
+#division{border-color:#ff9100 !important;background:#1a1200 !important}
+#nivel{border-color:#ffea00 !important;background:#1a1a00 !important}
+#modalidad optgroup[label*="MASCULINAS - FITNESS"]{background:#0e2f1a !important;color:#00e676 !important}
+#modalidad optgroup[label*="MASCULINAS - FISICOCULTURISMO"]{background:#2f0e0e !important;color:#ff5252 !important}
+#modalidad optgroup[label*="FEMENINAS - FITNESS"]{background:#2f0e2a !important;color:#ff80ab !important}
+#modalidad optgroup[label*="FEMENINAS - FISICOCULTURISMO"]{background:#2f0e1a !important;color:#ff4081 !important}
+#modalidad optgroup[label*="INFANTILES"]{background:#0e2f2f !important;color:#84ffff !important}
+#modalidad optgroup[label*="INCLUSIVO"]{background:#1e2f0e !important;color:#b2ff59 !important}
+#modalidad option{background:#000 !important;color:#fff !important}
+#categoria optgroup{background:#0a1a3a !important;color:#82b1ff !important}
+#division optgroup[label*="BIKINI"]{background:#3a1a0a !important;color:#ffcc80 !important}
+#division optgroup[label*="CLASSIC"]{background:#1a2a0a !important;color:#a5d6a7 !important}
+#division optgroup[label*="BODYBUILDING"]{background:#2a0a0a !important;color:#ef9a9a !important}
+#division optgroup[label*="COREOGRAFICO"]{background:#0a2a2a !important;color:#80deea !important}
+#division optgroup[label*="INCLUSIVO"]{background:#1a1a2a !important;color:#b39ddb !important}
+#division option{background:#111 !important;color:#fff !important}
+#nivel optgroup{background:#2e2e0a !important;color:#ffea00 !important}
+#formCampos{display:flex;flex-direction:column}
+.campoMovable{position:relative;border:1px dashed #333;border-radius:8px;margin:3px 0;padding:2px;background:#1a1a1a;overflow:hidden;box-sizing:border-box}
+.campoMovable .dragHandle{position:absolute;left:0;top:50%;transform:translateY(-50%);cursor:grab;color:#555;padding:6px;font-weight:bold;z-index:2}
+.campoMovable .inner{margin-left:22px}
+.sortable-ghost{opacity:0.2}
+.sortable-chosen{border-color:#ffcc00 !important}
+#alertaHistorial{display:none;background:#9c1a1a;color:#fff;border:2px solid #ffcc00;border-radius:10px;padding:12px;margin:8px 0;font-size:13px;line-height:1.5;text-align:left}
+#alertaHistorial b{color:#ffcc00}
+#alertaHistorial .tituloAlerta{font-size:15px;font-weight:bold;font-family:Arial Black}
+@media (min-width: 900px){
+  body{max-width:1280px;margin:0 auto}
+  .header{font-size:22px;padding:16px}
+  #tituloEvento{font-size:42px}
+  .header .logoEsquina{width:64px;height:64px;left:16px}
+  .layout{display:flex;gap:14px;align-items:flex-start;padding:0 10px}
+  .layout .form{flex:1.15;margin:10px 0;overflow:hidden}
+  .layout .colDerecha{flex:1;min-width:0}
+  #formCampos{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+  .campoMovable{margin:0;min-width:0}
+  .campoMovable .dragHandle{padding:4px;font-size:11px}
+  .campoMovable .inner{margin-left:18px;min-width:0}
+  .campoMovable .inner input,.campoMovable .inner select{width:100% !important;padding:8px 7px !important;font-size:13.5px !important;margin:4px 0 !important}
+  .campoMovable .inner div{max-width:100%}
+  #listaAtletas{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .atleta{margin:0;min-width:0}
+  .btns{display:flex;justify-content:center;flex-wrap:wrap}
+}
+</style></head><body>
+<div class="header"><img src="logo2.png" class="logoEsquina" alt="EASY REFEREE"><div class="textoHeader"><span id="tituloEvento">PESAJE MR QUITO</span></div></div>
+<div class="subHeader" id="subHeaderDinamico">CALDERON • LOCAL / OPEN • 2026 • EASY REFEREE</div>
+
+<div class="layout">
+<div class="form">
+  <div id="formCampos">
+    <div class="campoMovable" data-id="numero"><div class="dragHandle">↕</div><div class="inner"><input id="numero" type="number" placeholder="NUMERO DEL COMPETIDOR" style="border-color:#fff;background:#222"></div></div>
+    <div class="campoMovable" data-id="nombre"><div class="dragHandle">↕</div><div class="inner"><input id="nombre" placeholder="NOMBRE COMPLETO ATLETA"></div></div>
+    <div class="campoMovable" data-id="gym"><div class="dragHandle">↕</div><div class="inner"><input id="gym" placeholder="GYM / EQUIPO AL QUE REPRESENTA"></div></div>
+    <div class="campoMovable" data-id="cedula"><div class="dragHandle">↕</div><div class="inner"><input id="cedula" placeholder="CEDULA" oninput="buscarPorCedula()"></div></div>
+    <div class="campoMovable" data-id="edad"><div class="dragHandle">↕</div><div class="inner"><input id="edad" type="number" placeholder="EDAD"></div></div>
+    <div class="campoMovable" data-id="peso_talla"><div class="dragHandle">↕</div><div class="inner"><div style="display:flex;gap:5px"><input id="peso" type="number" placeholder="PESO kg" oninput="validarClassic()" style="flex:1"><input id="talla" type="number" placeholder="TALLA cm" oninput="validarClassic()" style="flex:1"></div></div></div>
+    <div class="campoMovable" data-id="alerta"><div class="dragHandle" style="display:none"></div><div class="inner"><div id="alertaPeso"></div></div></div>
+    <div class="campoMovable" data-id="modalidad"><div class="dragHandle">↕</div><div class="inner"><select id="modalidad" onchange="validarClassic()"><option value="">MODALIDAD</option><optgroup label="MASCULINAS - FITNESS"><option>Men's Fit</option><option>Men's Physique</option><option>Muscular Men's Physique</option><option>Men's Fitness</option></optgroup><optgroup label="MASCULINAS - FISICOCULTURISMO"><option>Games Classic Bodybuilding</option><option>Classic Bodybuilding (CULTURISMO CLASICO)</option><option>Classic Physique</option><option>Bodybuilding (FISICOCULTURISMO)</option></optgroup><optgroup label="FEMENINAS - FITNESS"><option>Fit & Beauty</option><option>Fit Model</option><option>Bikini Fitness</option><option>Wellness Fitness</option><option>Artistic Fitness</option><option>Acrobatic Fitness</option></optgroup><optgroup label="FEMENINAS - FISICOCULTURISMO"><option>BodyFitness</option><option>Women's Physique</option><option>Women's Wellness</option></optgroup><optgroup label="INFANTILES / FITNESS COREOGRAFICO"><option>Infantil Fitness - Hasta 9 años</option><option>Infantil Fitness - Hasta 12 años</option><option>Infantil Fitness - Hasta 15 años</option><option>Fitness Coreográfico Infantil</option><option>Fitness Coreográfico Junior</option><option>Fitness Coreográfico Senior</option><option>Fitness Coreográfico Master</option></optgroup><optgroup label="INCLUSIVO / ADAPTADO"><option>Fisicoculturismo Silla de Ruedas</option><option>Fitness Silla de Ruedas</option><option>Discapacidad Intelectual</option><option>Culturismo Inclusivo</option></optgroup></select></div></div>
+    <div class="campoMovable" data-id="categoria"><div class="dragHandle">↕</div><div class="inner"><select id="categoria"><option value="">CATEGORIA</option><option>Sub Junior 15-20 años</option><option>Junior 21-23 años</option><option>Senior</option><option>Master I H 40-44</option><option>Master II H 45-49</option><option>Master III H 50-54</option><option>Master IV H 55-59</option><option>Master V H +60</option><option>Master I M 35-39</option><option>Master II M 40-44</option><option>Master III M +45</option><option>Infantil 6-9 años</option><option>Infantil 10-13 años</option><option>Infantil 14-16 años</option></select></div></div>
+    <div class="campoMovable" data-id="division"><div class="dragHandle">↕</div><div class="inner"><select id="division"><option value="">DIVISION</option><optgroup label="BIKINI / WELLNESS / FITMODEL"><option>Hasta 1.60</option><option>Hasta 1.64</option><option>Hasta 1.68</option><option>Más de 1.68</option><option>Hasta 1.58 Wellness</option><option>Hasta 1.63 Wellness</option></optgroup><optgroup label="CLASSIC PHYSIQUE"><option>Classic Hasta 168cm</option><option>Classic Hasta 171cm</option><option>Classic Hasta 175cm</option><option>Classic Hasta 180cm</option><option>Classic Hasta 188cm</option><option>Classic Hasta 196cm</option><option>Classic Más de 196cm</option></optgroup><optgroup label="BODYBUILDING"><option>Hasta 70kg</option><option>Hasta 80kg</option><option>Hasta 90kg</option><option>Más de 90kg</option></optgroup><optgroup label="COREOGRAFICO / INFANTIL"><option>Coreográfico Talla Baja</option><option>Coreográfico Talla Alta</option><option>Infantil Unificada</option></optgroup><optgroup label="INCLUSIVO"><option>Silla Ruedas Unificada</option><option>Discapacidad Intelectual Unificada</option></optgroup></select></div></div>
+    <div class="campoMovable" data-id="nivel"><div class="dragHandle">↕</div><div class="inner"><select id="nivel" onchange="verificarHistorial()"><option value="" disabled selected hidden>NIVEL * OBLIGATORIO</option><option>NOVATO</option><option>CLASIFICADO</option><option>OPEN</option></select><div id="alertaHistorial"></div></div></div>
+  </div>
+  <button onclick="guardar()" id="btnGuardar">GUARDAR PESAJE ✓</button>
+  <div style="margin-top:12px;border-top:1px solid #333;padding-top:12px">
+    <button class="btnEspecial btnModalidad" onclick="crearModalidadEspecial()">+ CREAR MODALIDAD NUEVA</button>
+    <button class="btnEspecial" onclick="crearCategoriaEspecial()">+ CREAR CATEGORIA NUEVA</button>
+    <button class="btnEspecial btnDivision" onclick="crearDivisionEspecial()">+ CREAR DIVISION NUEVA</button>
+    <button class="btnEspecial btnBorrar" onclick="borrarModalidad()">🗑 BORRAR MODALIDAD</button>
+    <button class="btnEspecial btnBorrar" onclick="borrarCategoria()">🗑 BORRAR CATEGORIA</button>
+    <button class="btnEspecial btnBorrar" onclick="borrarDivision()">🗑 BORRAR DIVISION</button>
+  </div>
+</div>
+
+<div class="colDerecha">
+<div class="btns">
+  <button onclick="location.href='categorias.html'" style="background:#ffcc00;color:#000">VER ARMADO DE CATEGORIAS →</button>
+  <button onclick="exportar()" style="background:#9c1a1a;color:#fff">EXPORTAR EXCEL</button>
+  <button onclick="location.href='configuracion.html'" style="background:#fff;color:#000">⚙️ EDITAR CONFIGURACIÓN</button>
+  <button onclick="document.getElementById('inputXLS').click()" style="background:#00c853;color:#fff">📥 CARGAR PESAJE MASIVO XLS</button>
+  <input type="file" id="inputXLS" accept=".xls,.xlsx,.csv" style="display:none" onchange="cargarMasivo(event)">
+</div>
+<div class="lista"><h3 style="color:#ffcc00;text-align:center">ATLETAS PESADOS HOY: <span id="total">0</span></h3><div id="listaAtletas"></div></div>
+</div>
+</div>
+
+<div class="footerPesaje">Desarrollado por Fernando A. Arriaga creador y propietario.<br>© 2026 EASY REFEREE<br>Contacto: 0987144752 - alzarriaga593@gmail.com</div>
+
+<script>
+// === ENCABEZADO DINAMICO DESDE CONFIGURACION ===
+function cargarEncabezado(){
+  try{
+    const cfg = JSON.parse(localStorage.getItem('easy_competencia')||'{}');
+    if(cfg.nombre){
+      document.getElementById('tituloEvento').textContent = cfg.nombre.toUpperCase();
+      document.title = 'PESAJE - ' + cfg.nombre;
+    }
+    let lugar = (cfg.lugar || cfg.ciudad || '').toUpperCase();
+    let tipo = (cfg.tipo || '').toUpperCase();
+    let anio = cfg.fecha ? cfg.fecha.substring(0,4) : '';
+    let partes = [];
+    if(lugar) partes.push(lugar);
+    if(tipo) partes.push(tipo);
+    if(anio) partes.push(anio);
+    partes.push('EASY REFEREE');
+    document.getElementById('subHeaderDinamico').textContent = partes.join(' • ');
+  }catch(e){}
+}
+cargarEncabezado();
+let atletas = JSON.parse(localStorage.getItem('bw_pesaje')||'[]');
+let indiceEditando = -1;
+const tablaClassic = [
+ {tallaMax:168, pesoMax:71}, {tallaMax:171, pesoMax:75}, {tallaMax:175, pesoMax:79},
+ {tallaMax:180, pesoMax:86}, {tallaMax:188, pesoMax:93}, {tallaMax:196, pesoMax:103}, {tallaMax:300, pesoMax:113}
+];
+// ===== BASE DE DATOS EASY REFEREE =====
+function getBaseDatos(){ try{ return JSON.parse(localStorage.getItem('bw_base_datos')||'[]'); }catch(e){ return []; } }
+function setBaseDatos(d){ localStorage.setItem('bw_base_datos', JSON.stringify(d)); }
+function getInfoCampeonato(){
+  try{
+    const cfg = JSON.parse(localStorage.getItem('easy_competencia')||'{}');
+    return {
+      campeonato: cfg.nombre || document.getElementById('tituloEvento').textContent || 'CAMPEONATO',
+      anio: cfg.fecha ? cfg.fecha.substring(0,4) : new Date().getFullYear().toString(),
+      ciudad: cfg.lugar || cfg.ciudad || ''
+    };
+  }catch(e){ return {campeonato:'CAMPEONATO', anio: new Date().getFullYear().toString(), ciudad:''}; }
+}
+function buscarPorCedula(){
+  let ced = document.getElementById('cedula').value.trim();
+  if(!ced) return;
+  let base = getBaseDatos();
+  let encontrados = base.filter(x=> String(x.cedula)===String(ced));
+  if(encontrados.length>0){
+    let ultimo = encontrados[encontrados.length-1];
+    if(!document.getElementById('nombre').value && ultimo.nombre) document.getElementById('nombre').value = ultimo.nombre;
+    if(!document.getElementById('gym').value && ultimo.gym) document.getElementById('gym').value = ultimo.gym;
+  }
+  verificarHistorial();
+}
+function verificarHistorial(){
+  let div = document.getElementById('alertaHistorial');
+  let ced = document.getElementById('cedula').value.trim();
+  let nivel = document.getElementById('nivel').value;
+  div.style.display='none'; div.innerHTML='';
+  if(!ced || nivel!=='NOVATO') return;
+  let base = getBaseDatos();
+  let hist = base.filter(x=> String(x.cedula)===String(ced));
+  if(hist.length===0) return;
+  let ganadas = hist.filter(x=> String(x.puesto)==='1' || x.gano==='SI' || x.campeonAbsoluto==='SI').length;
+  let anios = [...new Set(hist.map(x=> String(x.anio)))].length;
+  let nombre = hist[0].nombre || document.getElementById('nombre').value || '';
+  if(ganadas>=2 || anios>=2){
+    let lista = hist.map(h=> `• ${h.campeonato} ${h.anio} - ${h.ciudad||''} - ${h.modalidad||''} - Puesto: ${h.puesto||'PENDIENTE'} ${h.campeonAbsoluto==='SI' ? '(CAMPEON ABSOLUTO)' : ''}`).join('<br>');
+    div.style.display='block';
+    div.innerHTML = `<div class="tituloAlerta">⚠️ ${nombre} - Cédula ${ced}</div><br>Este atleta ya tiene <b>${anios} años compitiendo</b> y <b>${ganadas} competencias ganadas</b> registradas en el sistema.<br><br><b>Historial:</b><br>${lista}<br><br><b>NO puede competir como NOVATO</b>`;
+    if(navigator.vibrate) navigator.vibrate([200,100,200]);
+  }
+}
+function guardarEnBaseDatos(a){
+  let info = getInfoCampeonato();
+  let base = getBaseDatos();
+  let yaExiste = base.findIndex(x=> String(x.cedula)===String(a.cedula) && String(x.campeonato).toUpperCase()===String(info.campeonato).toUpperCase() && String(x.anio)===String(info.anio) && String(x.modalidad)===String(a.modalidad) && String(x.categoria)===String(a.categoria));
+  let registro = {
+    cedula: a.cedula || '',
+    nombre: a.nombre,
+    gym: a.gym || '',
+    edad: a.edad || '',
+    campeonato: info.campeonato,
+    anio: info.anio,
+    ciudad: info.ciudad,
+    modalidad: a.modalidad,
+    categoria: a.categoria || '',
+    division: a.division || '',
+    nivel: a.nivel,
+    peso: a.peso || '',
+    talla: a.talla || '',
+    puesto: 'PENDIENTE',
+    gano: 'NO',
+    campeonAbsoluto: 'NO',
+    fechaRegistro: new Date().toISOString()
+  };
+  if(yaExiste>=0){ base[yaExiste] = {...base[yaExiste], ...registro, puesto: base[yaExiste].puesto}; }
+  else { base.push(registro); }
+  setBaseDatos(base);
+}
+function crearModalidadEspecial(){
+ let nueva = prompt('ESCRIBE LA NUEVA MODALIDAD:');
+ if(!nueva) return;
+ nueva = nueva.toUpperCase().trim();
+ let opt = document.createElement('option'); opt.text=nueva; opt.value=nueva;
+ document.getElementById('modalidad').appendChild(opt);
+ document.getElementById('modalidad').value=nueva;
+ let extras = JSON.parse(localStorage.getItem('bw_modalidades_extra')||'[]');
+ extras.push(nueva); localStorage.setItem('bw_modalidades_extra',JSON.stringify(extras));
+ alert('MODALIDAD CREADA: '+nueva);
+ validarClassic();
+}
+function crearCategoriaEspecial(){
+ let nueva = prompt('ESCRIBE LA NUEVA CATEGORIA:');
+ if(!nueva) return;
+ nueva = nueva.toUpperCase().trim();
+ let opt1 = document.createElement('option'); opt1.text=nueva; opt1.value=nueva;
+ let opt2 = document.createElement('option'); opt2.text=nueva; opt2.value=nueva;
+ document.getElementById('categoria').appendChild(opt1);
+ document.getElementById('division').appendChild(opt2);
+ document.getElementById('division').value=nueva;
+ let extras = JSON.parse(localStorage.getItem('bw_categorias_extra')||'[]');
+ extras.push(nueva); localStorage.setItem('bw_categorias_extra',JSON.stringify(extras));
+ alert('CATEGORIA CREADA: '+nueva+' - Ya puedes usarla');
+}
+function crearDivisionEspecial(){
+ let nueva = prompt('ESCRIBE LA NUEVA DIVISION:');
+ if(!nueva) return;
+ nueva = nueva.toUpperCase().trim();
+ let opt = document.createElement('option'); opt.text=nueva; opt.value=nueva;
+ document.getElementById('division').appendChild(opt);
+ document.getElementById('division').value=nueva;
+ let extras = JSON.parse(localStorage.getItem('bw_categorias_extra')||'[]');
+ extras.push(nueva); localStorage.setItem('bw_categorias_extra',JSON.stringify(extras));
+ alert('DIVISION CREADA: '+nueva+' - Ya puedes usarla');
+}
+function quitarOpcion(selectId, valor){
+ let sel = document.getElementById(selectId);
+ [...sel.querySelectorAll('option')].forEach(o=>{ if(o.value.toUpperCase()===valor) o.remove(); });
+ sel.value='';
+}
+function borrarModalidad(){
+ let actual = document.getElementById('modalidad').value;
+ let nombre = prompt('ESCRIBE LA MODALIDAD A BORRAR:\n(La que está seleccionada ahora es: '+(actual||'ninguna')+')', actual||'');
+ if(!nombre) return;
+ nombre = nombre.toUpperCase().trim();
+ if(!confirm('¿Borrar modalidad "'+nombre+'"? Ya no aparecerá en la lista.')) return;
+ quitarOpcion('modalidad', nombre);
+ let extras = JSON.parse(localStorage.getItem('bw_modalidades_extra')||'[]').filter(e=>e.toUpperCase()!==nombre);
+ localStorage.setItem('bw_modalidades_extra', JSON.stringify(extras));
+ alert('MODALIDAD BORRADA: '+nombre);
+}
+function borrarCategoria(){
+ let actual = document.getElementById('categoria').value;
+ let nombre = prompt('ESCRIBE LA CATEGORIA A BORRAR:\n(La que está seleccionada ahora es: '+(actual||'ninguna')+')', actual||'');
+ if(!nombre) return;
+ nombre = nombre.toUpperCase().trim();
+ if(!confirm('¿Borrar categoria "'+nombre+'"? Se borrará también de DIVISION si estaba ahí.')) return;
+ quitarOpcion('categoria', nombre);
+ quitarOpcion('division', nombre);
+ let extras = JSON.parse(localStorage.getItem('bw_categorias_extra')||'[]').filter(e=>e.toUpperCase()!==nombre);
+ localStorage.setItem('bw_categorias_extra', JSON.stringify(extras));
+ alert('CATEGORIA BORRADA: '+nombre);
+}
+function borrarDivision(){
+ let actual = document.getElementById('division').value;
+ let nombre = prompt('ESCRIBE LA DIVISION A BORRAR:\n(La que está seleccionada ahora es: '+(actual||'ninguna')+')', actual||'');
+ if(!nombre) return;
+ nombre = nombre.toUpperCase().trim();
+ if(!confirm('¿Borrar division "'+nombre+'"?')) return;
+ quitarOpcion('division', nombre);
+ let extras = JSON.parse(localStorage.getItem('bw_categorias_extra')||'[]').filter(e=>e.toUpperCase()!==nombre);
+ localStorage.setItem('bw_categorias_extra', JSON.stringify(extras));
+ alert('DIVISION BORRADA: '+nombre);
+}
+function validarClassic(){
+ let t=parseFloat(document.getElementById('talla').value);
+ let p=parseFloat(document.getElementById('peso').value);
+ let mod=document.getElementById('modalidad').value;
+ let div=document.getElementById('alertaPeso');
+ if(!t || !p || !mod.includes('Classic')){ div.style.display='none'; return; }
+ let limite = tablaClassic.find(x=>t<=x.tallaMax);
+ if(!limite) return;
+ let max = limite.pesoMax;
+ let division = document.getElementById('division');
+ if(t<=168) division.value='Classic Hasta 168cm';
+ else if(t<=171) division.value='Classic Hasta 171cm';
+ else if(t<=175) division.value='Classic Hasta 175cm';
+ else if(t<=180) division.value='Classic Hasta 180cm';
+ else if(t<=188) division.value='Classic Hasta 188cm';
+ else if(t<=196) division.value='Classic Hasta 196cm';
+ else division.value='Classic Más de 196cm';
+ if(p>max){
+   div.style.display='block'; div.className='error';
+   div.innerHTML=`❌ SOBREPESO CLASSIC: Talla ${t}cm Max ${max}kg - Pesas ${p}kg (Excedes ${(p-max).toFixed(1)}kg)`;
+ }else{
+   div.style.display='block'; div.className='ok';
+   div.innerHTML=`✓ CLASSIC OK: Talla ${t}cm Max ${max}kg - Vas en ${division.value}`;
+ }
+}
+function guardar(){
+ let a={
+  id: indiceEditando>=0 ? atletas[indiceEditando].id : Date.now(),
+  numero: document.getElementById('numero').value.trim(),
+  nombre: document.getElementById('nombre').value.toUpperCase(),
+  gym: document.getElementById('gym').value.toUpperCase(),
+  cedula: document.getElementById('cedula').value,
+  edad: document.getElementById('edad').value.trim(),
+  peso: document.getElementById('peso').value,
+  talla: document.getElementById('talla').value,
+  modalidad: document.getElementById('modalidad').value,
+  categoria: document.getElementById('categoria').value,
+  division: document.getElementById('division').value,
+  nivel: document.getElementById('nivel').value,
+  hora: new Date().toLocaleTimeString()
+ };
+ if(!a.nombre || !a.modalidad){alert('Nombre y Modalidad obligatorios'); return;}
+ if(!a.nivel){ alert('⚠️ NIVEL es OBLIGATORIO: Debes elegir NOVATO, CLASIFICADO u OPEN para evitar errores en tarima'); document.getElementById('nivel').style.borderColor='red'; document.getElementById('nivel').focus(); return; }
+ if(a.numero && atletas.some((x,i)=> x.numero && x.numero==a.numero && i!==indiceEditando)){
+   if(!confirm(`El N° ${a.numero} ya existe con ${atletas.find((x,i)=>x.numero==a.numero && i!==indiceEditando)?.nombre}. ¿Guardar igual?`)) return;
+ }
+ if(indiceEditando>=0){
+   atletas[indiceEditando]=a;
+   indiceEditando=-1;
+   document.getElementById('btnGuardar').innerText='GUARDAR PESAJE ✓';
+   document.getElementById('btnGuardar').style.background='#00c853';
+ } else {
+   atletas.push(a);
+ }
+ localStorage.setItem('bw_pesaje', JSON.stringify(atletas));
+ guardarEnBaseDatos(a);
+ document.getElementById('numero').value=''; document.getElementById('nombre').value=''; document.getElementById('gym').value=''; document.getElementById('cedula').value=''; document.getElementById('edad').value='';
+ document.getElementById('peso').value=''; document.getElementById('talla').value=''; document.getElementById('nivel').value='';
+ document.getElementById('alertaPeso').style.display='none';
+ document.getElementById('alertaHistorial').style.display='none';
+ let ultimoNum = parseInt(a.numero)||0;
+ if(ultimoNum>0) document.getElementById('numero').value = ultimoNum+1;
+ render(); if(navigator.vibrate) navigator.vibrate(100);
+}
+// ===== CARGAR PESAJE MASIVO XLS - IMPORTACION INTELIGENTE V2 =====
+function normalizarClave(k){
+  return String(k||'').toUpperCase().trim()
+    .replace(/Á/g,'A').replace(/É/g,'E').replace(/Í/g,'I').replace(/Ó/g,'O').replace(/Ú/g,'U').replace(/Ñ/g,'N')
+    .replace(/\./g,'').replace(/_/g,' ').replace(/-/g,' ').replace(/\s+/g,' ').trim();
+}
+function buscarCol(o, lista){
+  for(let n of lista){
+    let key = normalizarClave(n);
+    if(o[key] !== undefined && String(o[key]).trim() !== '') return String(o[key]).trim();
+  }
+  return '';
+}
+function normalizarModalidad(m){
+  let x = normalizarClave(m);
+  if(!x) return '';
+  if(x.includes('FISICOCULTURISMO') || x.includes('BODYBUILDING') || x.includes('BODY BUILDING')) return 'Bodybuilding (FISICOCULTURISMO)';
+  if(x.includes('BIKINI')) return 'Bikini Fitness';
+  if(x.includes('CLASSIC BODYBUILDING') || x.includes('CULTURISMO CLASICO')) return 'Classic Bodybuilding (CULTURISMO CLASICO)';
+  if(x.includes('CLASSIC')) return 'Classic Physique';
+  if(x.includes('WELLNESS')) return 'Wellness Fitness';
+  if(x.includes('MUSCULAR') && x.includes('PHYSIQUE')) return 'Muscular Men\'s Physique';
+  if(x.includes('MENS') || x.includes('MEN S') || x === 'PHYSIQUE' || x.includes('MEN PHYSIQUE')) return "Men's Physique";
+  if(x.includes('WOMEN') && x.includes('PHYSIQUE')) return "Women's Physique";
+  if(x.includes('FIGURE') || x.includes('BODYFITNESS') || x.includes('BODY FITNESS')) return 'BodyFitness';
+  if(x.includes('FIT MODEL') || x === 'FITMODEL' || x.includes('FITMODEL')) return 'Fit Model';
+  if(x.includes('FIT') && x.includes('BEAUTY')) return 'Fit & Beauty';
+  if(x.includes('MENS FIT') || x === 'MEN S FIT') return "Men's Fit";
+  if(x.includes('MENS FITNESS') || x.includes('MEN S FITNESS')) return "Men's Fitness";
+  if(x.includes('ARTISTIC')) return 'Artistic Fitness';
+  if(x.includes('ACROBATIC')) return 'Acrobatic Fitness';
+  if(x.includes('SILLA') && x.includes('FISICOCULTURISMO')) return 'Fisicoculturismo Silla de Ruedas';
+  if(x.includes('SILLA') && x.includes('FITNESS')) return 'Fitness Silla de Ruedas';
+  if(x.includes('DISCAPACIDAD INTELECTUAL')) return 'Discapacidad Intelectual';
+  if(x.includes('INCLUSIVO')) return 'Culturismo Inclusivo';
+  if(x.includes('INFANTIL') || x.includes('COREOGRAFICO')) return String(m||'').trim();
+  return String(m||'').trim();
+}
+function normalizarCategoria(c, edad){
+  let x = normalizarClave(c);
+  if(!x) return '';
+  if(x === 'SENIOR') return 'Senior';
+  if(x.includes('SUB JUNIOR')) return 'Sub Junior 15-20 años';
+  if(x.includes('JUNIOR')) return 'Junior 21-23 años';
+  if(x === 'NOVATO') return 'Novato';
+  if(x === 'OPEN') return 'Open';
+  if(x === 'MASTER' || x.includes('MASTER')) return 'Master';
+  if(x.includes('INFANTIL')) return String(c||'').trim();
+  return String(c||'').trim();
+}
+// ===== SOLO AJUSTE FORMATOS RAROS: NIVEL "NOV O CLAS" + DIVISION "172/68KG" =====
+function normalizarNivel(n){
+  let x = normalizarClave(n);
+  if(!x) return '';
+  if(x.includes('NOV')) return 'NOVATO';
+  if(x.includes('CLASIF') || x.includes('CLAS')) return 'CLASIFICADO';
+  if(x === 'OPEN' || x.includes('OPEN')) return 'OPEN';
+  return String(n||'').toUpperCase().trim();
+}
+function extraerPesoTallaDeDivision(divRaw, pesoActual, tallaActual){
+  let raw = String(divRaw||'').trim();
+  let peso = String(pesoActual||'').trim();
+  let talla = String(tallaActual||'').trim();
+  if(!raw) return {peso, talla, esCombinada:false};
+  let xn = normalizarClave(raw);
+  if(xn.includes('HASTA') || xn.includes('MAS DE') || xn.includes('CLASSIC') || xn.includes('COREOGRAFICO') || xn.includes('INFANTIL') || xn.includes('SILLA') || xn.includes('DISCAPACIDAD') || xn.includes('UNIFICADA') || xn.includes('TALLA BAJA') || xn.includes('TALLA ALTA')) return {peso, talla, esCombinada:false};
+  if(raw.includes('/')){
+    let partes = raw.split('/');
+    let p1 = String(partes[0]||'').replace(',','.').replace(/[^\d.]/g,'');
+    let p2 = String(partes[1]||'').replace(',','.').replace(/[^\d.]/g,'');
+    if(p1 && !talla) talla = p1;
+    if(p2 && !peso) peso = p2;
+    return {peso, talla, esCombinada:true};
+  }
+  if(/CM/i.test(raw)){
+    let n = raw.replace(',','.').replace(/[^\d.]/g,'');
+    if(n && !talla) talla = n;
+    return {peso, talla, esCombinada:true};
+  }
+  if(/KG/i.test(raw)){
+    let n = raw.replace(',','.').replace(/[^\d.]/g,'');
+    if(n && !peso) peso = n;
+    return {peso, talla, esCombinada:true};
+  }
+  if(/^\d+([,.]\d+)?$/.test(raw.trim())){
+    if(!talla) talla = raw.replace(',','.');
+    return {peso, talla, esCombinada:true};
+  }
+  return {peso, talla, esCombinada:false};
+}
+function normalizarDivision(d, modalidad, peso, talla){
+  let raw = String(d||'').trim();
+  if(!raw) return '';
+  let x = normalizarClave(raw);
+  if(x.includes('HASTA') || x.includes('MAS DE') || x.includes('CLASSIC') || x.includes('COREOGRAFICO') || x.includes('INFANTIL') || x.includes('SILLA') || x.includes('DISCAPACIDAD') || x.includes('UNIFICADA') || x.includes('TALLA')) return raw;
+  let num = parseFloat(raw.replace(',','.').replace(/[^\d.]/g,''));
+  if(isNaN(num)) return raw;
+  if(num > 100){ num = num / 100; }
+  if(modalidad === 'Bodybuilding (FISICOCULTURISMO)' || modalidad === "Men's Physique"){
+    if(num <= 70) return 'Hasta 70kg';
+    if(num <= 80) return 'Hasta 80kg';
+    if(num <= 90) return 'Hasta 90kg';
+    return 'Más de 90kg';
+  }
+  if(modalidad === 'Classic Physique'){
+    let t = parseFloat(talla)||0;
+    if(t<=168) return 'Classic Hasta 168cm';
+    if(t<=171) return 'Classic Hasta 171cm';
+    if(t<=175) return 'Classic Hasta 175cm';
+    if(t<=180) return 'Classic Hasta 180cm';
+    if(t<=188) return 'Classic Hasta 188cm';
+    if(t<=196) return 'Classic Hasta 196cm';
+    return 'Classic Más de 196cm';
+  }
+  if(modalidad === 'Bikini Fitness' || modalidad === 'Fit Model'){
+    if(num <= 1.60) return 'Hasta 1.60';
+    if(num <= 1.64) return 'Hasta 1.64';
+    if(num <= 1.68) return 'Hasta 1.68';
+    return 'Más de 1.68';
+  }
+  if(modalidad === 'Wellness Fitness'){
+    if(num <= 1.58) return 'Hasta 1.58 Wellness';
+    if(num <= 1.63) return 'Hasta 1.63 Wellness';
+    if(num <= 1.64) return 'Hasta 1.64';
+    return 'Más de 1.68';
+  }
+  return raw;
+}
+function calcularDivisionAuto(modalidad, peso, talla){
+  let p = parseFloat(peso)||0;
+  let t = parseFloat(talla)||0;
+  if(modalidad === 'Bodybuilding (FISICOCULTURISMO)'){
+    if(p<=70) return 'Hasta 70kg';
+    if(p<=80) return 'Hasta 80kg';
+    if(p<=90) return 'Hasta 90kg';
+    return 'Más de 90kg';
+  }
+  if(modalidad === "Men's Physique"){
+    if(p<=70) return 'Hasta 70kg';
+    if(p<=80) return 'Hasta 80kg';
+    if(p<=90) return 'Hasta 90kg';
+    return 'Más de 90kg';
+  }
+  if(modalidad === 'Classic Physique'){
+    if(t<=168) return 'Classic Hasta 168cm';
+    if(t<=171) return 'Classic Hasta 171cm';
+    if(t<=175) return 'Classic Hasta 175cm';
+    if(t<=180) return 'Classic Hasta 180cm';
+    if(t<=188) return 'Classic Hasta 188cm';
+    if(t<=196) return 'Classic Hasta 196cm';
+    return 'Classic Más de 196cm';
+  }
+  if(modalidad === 'Bikini Fitness' || modalidad === 'Fit Model'){
+    if(t<=160) return 'Hasta 1.60';
+    if(t<=164) return 'Hasta 1.64';
+    if(t<=168) return 'Hasta 1.68';
+    return 'Más de 1.68';
+  }
+  if(modalidad === 'Wellness Fitness'){
+    if(t<=158) return 'Hasta 1.58 Wellness';
+    if(t<=163) return 'Hasta 1.63 Wellness';
+    if(t<=164) return 'Hasta 1.64';
+    return 'Más de 1.68';
+  }
+  return '';
+}
+function asegurarOpcion(selectId, valor){
+  if(!valor) return;
+  let sel = document.getElementById(selectId);
+  if(!sel) return;
+  let existe = [...sel.options].some(o => o.value === valor || o.text === valor);
+  if(!existe){
+    let opt = document.createElement('option');
+    opt.value = valor; opt.text = valor;
+    sel.appendChild(opt);
+  }
+  sel.value = valor;
+}
+function cargarMasivo(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      let matriz = [];
+      if(file.name.toLowerCase().endsWith('.csv')){
+        const texto = e.target.result;
+        const lineas = texto.split(/\r?\n/).filter(l=>l.trim()!=='');
+        lineas.forEach(l=>{
+          const vals = l.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(v=>v.replace(/^"|"$/g,'').trim());
+          matriz.push(vals);
+        });
+      } else {
+        const data = new Uint8Array(e.target.result);
+        const wb = XLSX.read(data, {type:'array'});
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        matriz = XLSX.utils.sheet_to_json(ws, {header:1, defval:'', raw:false});
+      }
+      if(!matriz.length){ alert('El Excel está vacío'); return; }
+      let filaTitulo = -1;
+      let headersNorm = [];
+      for(let r=0; r<Math.min(matriz.length, 10); r++){
+        let fila = matriz[r].map(c=>normalizarClave(c));
+        let tieneNombre = fila.some(c=> c==='NOMBRE' || c==='NOMBRE COMPLETO' || c==='ATLETA' || c==='NOMBRE ATLETA' || c==='NOMBRES' || c.includes('NOMBRE'));
+        let tieneOtra = fila.some(c=> c.includes('CEDULA') || c==='CI' || c.includes('MODALIDAD') || c.includes('CATEGORIA') || c.includes('PESO') || c.includes('GYM') || c.includes('DIVISION') || c.includes('NOV'));
+        if(tieneNombre && tieneOtra){ filaTitulo = r; headersNorm = fila; break; }
+      }
+      if(filaTitulo === -1){
+        let primera = matriz[0].map(c=>String(c||'')).join(' | ');
+        let segunda = matriz.length>1 ? matriz[1].map(c=>String(c||'')).join(' | ') : '';
+        alert('NO ENCONTRE LA FILA DE TITULOS.\n\nFila 1 que lei: ' + primera + '\nFila 2 que lei: ' + segunda + '\n\nTu Excel debe tener una fila con NOMBRE, CEDULA, MODALIDAD, etc. Revisa que no este combinada o con espacios raros y vuelve a intentar.');
+        event.target.value=''; return;
+      }
+      let filas = [];
+      for(let r=filaTitulo+1; r<matriz.length; r++){
+        let obj = {};
+        headersNorm.forEach((h,ci)=>{ obj[h] = matriz[r][ci]!==undefined ? matriz[r][ci] : ''; });
+        filas.push(obj);
+      }
+      let cargados = 0, saltados = 0, sinNivel = 0, sinModalidad = 0;
+      let ejemploSaltado = '';
+      filas.forEach(f=>{
+        let o = f;
+        let nombreSolo = buscarCol(o, ['NOMBRE','NOMBRE COMPLETO','ATLETA','NOMBRE ATLETA','NOMBRES']);
+        let apellidoSolo = buscarCol(o, ['APELLIDO','APELLIDOS','APELLIDO ATLETA']);
+        let nombre = (nombreSolo + (apellidoSolo ? ' ' + apellidoSolo : '')).trim().toUpperCase();
+        if(!nombre){
+          let valores = Object.values(o).map(v=>String(v||'').trim()).filter(v=>v);
+          let candidato = valores.find(v=> /[A-Z]{3,}/.test(v.toUpperCase()) && v.length>5 && isNaN(Number(v)));
+          if(candidato && !ejemploSaltado) ejemploSaltado = candidato;
+        }
+        if(!nombre){ saltados++; return; }
+        let modalidadRaw = buscarCol(o, ['MODALIDAD','MODALIDAD COMPETENCIA','CATEGORIA MODALIDAD','CATEGORIA']);
+        let categoriaRaw = buscarCol(o, ['CATEGORIA','CAT','CATEGORIA EDAD']);
+        let modalidadNorm = normalizarModalidad(modalidadRaw);
+        if(!modalidadNorm && categoriaRaw) modalidadNorm = normalizarModalidad(categoriaRaw);
+        if(!modalidadNorm){ sinModalidad++; }
+        let pesoVal = buscarCol(o, ['PESO','PESO KG','PESO EN KG','KG']);
+        let tallaVal = buscarCol(o, ['TALLA','TALLA CM','ESTATURA','ALTURA','TALLA EN CM','CM','TALLA M']);
+        let categoriaNorm = normalizarCategoria(categoriaRaw, buscarCol(o, ['EDAD']));
+        if(modalidadNorm && normalizarClave(categoriaRaw) === normalizarClave(modalidadRaw)) categoriaNorm = '';
+        let divisionRaw = buscarCol(o, ['DIVISION','DIV','DIVISION PESO','DIVISION TALLA']);
+        // AJUSTE FORMATOS RAROS: "172/68KG" -> Talla 172 / Peso 68
+        let extra = extraerPesoTallaDeDivision(divisionRaw, pesoVal, tallaVal);
+        pesoVal = extra.peso;
+        tallaVal = extra.talla;
+        let divisionNorm = '';
+        if(extra.esCombinada){
+          divisionNorm = calcularDivisionAuto(modalidadNorm, pesoVal, tallaVal);
+        } else {
+          divisionNorm = normalizarDivision(divisionRaw, modalidadNorm, pesoVal, tallaVal) || calcularDivisionAuto(modalidadNorm, pesoVal, tallaVal);
+        }
+        // AJUSTE FORMATOS RAROS: NIVEL puede venir como "NOV O CLAS"
+        let nivelNorm = normalizarNivel(buscarCol(o, ['NIVEL','NIVEL COMPETENCIA','NOV O CLAS','NOV O CLASIF','NOVATO O CLASIFICADO','NOV O CLASIFICADO']));
+        if(!nivelNorm) sinNivel++;
+        let a = {
+          id: Date.now() + Math.floor(Math.random()*100000) + cargados,
+          numero: buscarCol(o, ['NUMERO','N','NUM','N°','NO','NRO']),
+          nombre: nombre,
+          gym: buscarCol(o, ['GYM','GYM EQUIPO','EQUIPO','GIMNASIO','TEAM']).toUpperCase(),
+          cedula: buscarCol(o, ['CEDULA','CI','C I','IDENTIFICACION','DNI','DOCUMENTO']),
+          edad: buscarCol(o, ['EDAD','ANOS','AÑOS','ANOS']),
+          peso: pesoVal,
+          talla: tallaVal,
+          modalidad: modalidadNorm,
+          categoria: categoriaNorm,
+          division: divisionNorm,
+          nivel: nivelNorm,
+          hora: new Date().toLocaleTimeString()
+        };
+        atletas.push(a);
+        guardarEnBaseDatos(a);
+        cargados++;
+      });
+      localStorage.setItem('bw_pesaje', JSON.stringify(atletas));
+      render();
+      let titulosDetectados = headersNorm.map(h=>String(h||'')).filter(h=>h).join(' | ');
+      alert('PESAJE MASIVO CARGADO: ' + cargados + ' atletas cargados\n\nTITULOS QUE DETECTE (fila ' + (filaTitulo+1) + '): ' + titulosDetectados + (saltados ? '\n\n' + saltados + ' filas saltadas (sin nombre)' : '') + (sinModalidad ? '\n' + sinModalidad + ' sin MODALIDAD, revisalos en EDITAR' : '') + (sinNivel ? '\n' + sinNivel + ' sin NIVEL, revisalos en EDITAR' : ''));
+    }catch(err){ alert('Error leyendo el Excel: ' + err.message); }
+    event.target.value = '';
+  };
+  if(file.name.toLowerCase().endsWith('.csv')) reader.readAsText(file);
+  else reader.readAsArrayBuffer(file);
+}
+function render(){
+ document.getElementById('total').innerText=atletas.length;
+ let div=document.getElementById('listaAtletas'); div.innerHTML='';
+ let extrasCat = JSON.parse(localStorage.getItem('bw_categorias_extra')||'[]');
+ extrasCat.forEach(e=>{ if(![...document.getElementById('division').options].some(o=>o.value===e)){ let op=document.createElement('option'); op.value=e; op.text=e; document.getElementById('division').appendChild(op); } });
+ let extrasMod = JSON.parse(localStorage.getItem('bw_modalidades_extra')||'[]');
+ extrasMod.forEach(e=>{ if(![...document.getElementById('modalidad').options].some(o=>o.value===e)){ let op=document.createElement('option'); op.value=e; op.text=e; document.getElementById('modalidad').appendChild(op); } });
+ atletas.slice().reverse().forEach((a,i)=>{
+  let idx = atletas.length-1-i;
+  div.innerHTML+=`<div class="atleta"><div><b><span class="numeroBadge">${a.numero||'-'}</span> ${a.nombre}</b> <span style="color:#ffcc00;font-size:11px">${a.edad? a.edad+' años':''} ${a.nivel?'| '+a.nivel:''}</span><br><small>${a.gym? '🏋️ '+a.gym+' | ':''}${a.modalidad} | CAT: ${a.categoria||'-'} | DIV: ${a.division||'-'} | ${a.peso}kg ${a.talla}cm</small></div><div style="text-align:right"><span class="badge">${a.hora}</span><br><button onclick="editar(${idx})" style="background:#ffcc00;color:#000;border:none;border-radius:5px;padding:5px 8px;margin-top:5px;font-weight:bold;font-size:11px">EDITAR</button> <button onclick="borrar(${idx})" style="background:red;color:#fff;border:none;border-radius:5px;padding:5px;margin-top:5px">X</button></div></div>`;
+ });
+}
+function editar(idx){
+ let a = atletas[idx];
+ if(!a) return;
+ document.getElementById('numero').value = a.numero||'';
+ document.getElementById('nombre').value = a.nombre||'';
+ document.getElementById('gym').value = a.gym||'';
+ document.getElementById('cedula').value = a.cedula||'';
+ document.getElementById('edad').value = a.edad||'';
+ document.getElementById('peso').value = a.peso||'';
+ document.getElementById('talla').value = a.talla||'';
+ asegurarOpcion('modalidad', a.modalidad);
+ asegurarOpcion('categoria', a.categoria);
+ asegurarOpcion('division', a.division);
+ document.getElementById('nivel').value = a.nivel||'';
+ indiceEditando = idx;
+ document.getElementById('btnGuardar').innerText = `ACTUALIZAR #${a.numero||''} ${a.nombre} ✓`;
+ document.getElementById('btnGuardar').style.background = '#ff9800';
+ window.scrollTo({top:0, behavior:'smooth'});
+ validarClassic();
+ verificarHistorial();
+ if(navigator.vibrate) navigator.vibrate(100);
+}
+function borrar(idx){ if(confirm('Borrar?')){ atletas.splice(idx,1); localStorage.setItem('bw_pesaje', JSON.stringify(atletas)); render(); }}
+function exportar(){
+  let cols = ['Numero','Nombre','Gym','Cedula','Edad','Peso','Talla','Modalidad','Categoria','Division','Nivel'];
+  let filas = atletas.map(a => [a.numero||'', a.nombre||'', a.gym||'', a.cedula||'', a.edad||'', a.peso||'', a.talla||'', a.modalidad||'', a.categoria||'', a.division||'', a.nivel||'']);
+  let ws = XLSX.utils.aoa_to_sheet([cols, ...filas]);
+  ws['!cols'] = cols.map(()=>({wch:18}));
+  let wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Pesaje');
+  XLSX.writeFile(wb, 'pesaje_mrquito_FERNANDO_ARRIAGA.xlsx');
+}
+function initSortable(){
+ let cont=document.getElementById('formCampos');
+ let ordenGuardado=JSON.parse(localStorage.getItem('bw_orden_campos')||'null');
+ if(ordenGuardado){ ordenGuardado.forEach(id=>{ let el=cont.querySelector(`[data-id="${id}"]`); if(el) cont.appendChild(el); }); }
+ Sortable.create(cont,{handle:'.dragHandle',animation:200,ghostClass:'sortable-ghost',chosenClass:'sortable-chosen',onEnd:()=>{ let orden=[...cont.children].map(c=>c.dataset.id); localStorage.setItem('bw_orden_campos',JSON.stringify(orden)); }});
+}
+initSortable();
+render();
+</script></body></html>

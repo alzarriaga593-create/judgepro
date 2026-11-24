@@ -1,0 +1,228 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ARMADO - FERNANDO ARRIAGA</title>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+body{margin:0;background:#000;color:#fff;font-family:Arial}
+.header{background:#ffcc00;color:#000;text-align:center;font-weight:bold;padding:12px;font-family:Arial Black;font-size:16px;display:flex;align-items:center;justify-content:center;position:relative}
+.header .logoEsquina{width:52px;height:52px;object-fit:contain;background:#fff;border-radius:50%;padding:2px;position:absolute;left:12px;top:50%;transform:translateY(-50%)}
+.header .textoHeader{width:100%;text-align:center}
+#tituloEvento{font-size:16px;line-height:1.2;display:block;text-align:center}
+#tituloPantalla{display:block}
+#tituloPrint{display:none}
+.subHeader{background:#111;color:#ffcc00;text-align:center;padding:5px;font-size:11px}
+.footerPesaje{text-align:center;padding:20px 10px 25px;color:#aaa;font-size:13px;line-height:1.6;border-top:1px solid #333;margin:20px 10px 0}
+.footerPrint{display:none}
+.card{background:#1a1a1a;border:2px solid #ffcc00;border-radius:12px;margin:10px;padding:12px;cursor:grab}
+.card.novato{border-left:8px solid #00c853}
+.card.clasificado{border-left:8px solid #ff9800}
+.card.open{border-left:8px solid #ffcc00}
+.card h3{color:#ffcc00;margin:5px 0;font-size:14px}
+.atletasMini{background:#000;border-radius:8px;padding:8px;margin:5px 0;max-height:150px;overflow:auto;font-size:12px}
+.btnComp{background:#00c853;color:#fff;width:100%;padding:12px;border:none;border-radius:8px;font-family:Arial Black;font-weight:bold;margin-top:8px}
+.btnDel{background:#9c1a1a;color:#fff;padding:3px 8px;border:none;border-radius:5px;font-size:10px;margin-left:5px}
+.stats{display:flex;gap:10px;margin:10px}
+.statBox{background:#111;border:1px solid #ffcc00;border-radius:8px;padding:10px;flex:1;text-align:center}
+.statBox b{color:#ffcc00;font-size:20px}
+.bar{position:sticky;top:0;z-index:20;background:#111;padding:8px;display:flex;gap:6px;flex-wrap:wrap;border-bottom:2px solid #ffcc00;justify-content:center}
+.btnTop{padding:10px 14px;border:none;border-radius:8px;font-weight:bold;cursor:pointer;font-size:12px}
+.drag-ghost{opacity:0.2}
+.ordenNum{background:#000;color:#ffcc00;padding:2px 8px;border-radius:12px;font-family:Arial Black;font-size:12px;margin-right:5px}
+
+/* === SOLO PARA IMPRESION === */
+@media print{
+  body{background:#fff;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .bar, .stats, .btnComp, .btnDel, .subHeader, .footerPesaje{display:none !important}
+  .header{background:#fff !important;color:#000;border:2px solid #000;margin-bottom:10px}
+  .header .logoEsquina{display:none !important}
+  #tituloPantalla{display:none !important}
+  #tituloPrint{display:block !important;font-family:Arial Black;text-transform:uppercase}
+  #tituloPrint .nombrePrint{font-size:18px;line-height:1.2;display:block}
+  #tituloPrint .subPrint{font-size:13px;line-height:1.4;display:block;margin-top:4px;letter-spacing:1px}
+  #listaTarimas{padding:0}
+  .card{background:#fff !important;color:#000 !important;border:1px solid #000 !important;break-inside:avoid;page-break-inside:avoid;cursor:default;margin:6px 0;border-radius:0}
+  .card h3{color:#000 !important}
+  .card h3 span{background:#000 !important;color:#fff !important}
+  .ordenNum{background:#000 !important;color:#fff !important}
+  .atletasMini{background:#f5f5f5 !important;color:#000 !important;border:1px solid #ccc;max-height:none !important;overflow:visible !important}
+  .footerPrint{display:block !important;text-align:center;font-size:11px;font-weight:bold;color:#000;border-top:2px solid #000;padding-top:8px;margin-top:12px}
+}
+</style></head><body>
+<div class="header"><img src="logo2.png" class="logoEsquina" alt="EASY REFEREE"><div class="textoHeader"><span id="tituloEvento"><span id="tituloPantalla">ARMADO TARIMAS - ORDEN DE COMPETENCIA<br>FERNANDO ARRIAGA - MR QUITO</span><span id="tituloPrint"><span class="nombrePrint" id="nombrePrint">FERNANDO ARRIAGA - MR QUITO</span><span class="subPrint">ORDEN DE COMPETENCIA • EASY REFEREE</span></span></span></div></div>
+<div class="subHeader" id="subHeaderDinamico">AUTOMÁTICO POR MODALIDAD + CATEGORÍA (EDAD) + DIVISIÓN (TALLA/PESO) - CON ORDEN MANUAL</div>
+
+<div class="stats">
+  <div class="statBox"><b id="totalAtletas">0</b><br>ATLETAS</div>
+  <div class="statBox"><b id="totalTarimas">0</b><br>TARIMAS ARMADAS</div>
+  <div class="statBox"><b id="totalEspecial">0</b><br>ESPECIALES</div>
+</div>
+
+<div class="bar">
+  <button class="btnTop" style="background:#00c853;color:#fff" onclick="location.href='conectar_jueces.html'">📱 CONECTAR CON JUECES</button>
+  <button class="btnTop" style="background:#ffcc00;color:#000" onclick="ordenPreferencial()">⚡ ORDEN AUTO: NOVATOS > CLASIFICADOS</button>
+  <button class="btnTop" style="background:#2962ff;color:#fff" onclick="exportarExcel()">📊 EXPORTAR EXCEL ORDENADO</button>
+  <button class="btnTop" style="background:#fff;color:#000;border:2px solid #000" onclick="imprimirOrden()">🖨️ IMPRIMIR ORDEN</button>
+  <button class="btnTop" style="background:#222;color:#fff;border:1px solid #ffcc00" onclick="rearmar()">🔄 RE-ARMAR AUTO</button>
+  <button class="btnTop" style="background:#222;color:#fff;border:1px solid #ffcc00" onclick="location.href='pesaje.html'">← PESAJE</button>
+</div>
+
+<div id="listaTarimas"></div>
+
+<div class="footerPesaje">Desarrollado por Fernando A. Arriaga creador y propietario.<br>© 2026 EASY REFEREE - B&W FITNESS<br>Contacto: 0987144752 - alzarriaga593@gmail.com</div>
+<div class="footerPrint">Easy Referee_Fernando Arriaga_Contactos alzarriaga593@gmail.com</div>
+
+<script>
+// === ENCABEZADO DINAMICO DESDE CONFIGURACION ===
+function cargarEncabezado(){
+  try{
+    const cfg = JSON.parse(localStorage.getItem('easy_competencia')||'{}');
+    if(cfg.nombre){
+      document.getElementById('tituloPantalla').innerHTML = 'ARMADO TARIMAS - ORDEN DE COMPETENCIA<br>' + cfg.nombre.toUpperCase();
+      document.getElementById('nombrePrint').textContent = cfg.nombre.toUpperCase();
+      document.title = 'ARMADO - ' + cfg.nombre;
+    }
+    let lugar = (cfg.lugar || cfg.ciudad || '').toUpperCase();
+    let tipo = (cfg.tipo || '').toUpperCase();
+    let anio = cfg.fecha ? cfg.fecha.substring(0,4) : '';
+    if(lugar || tipo || anio){
+      let partes = [];
+      if(lugar) partes.push(lugar);
+      if(tipo) partes.push(tipo);
+      if(anio) partes.push(anio);
+      partes.push('EASY REFEREE');
+      document.getElementById('subHeaderDinamico').textContent = partes.join(' • ');
+    }
+  }catch(e){}
+}
+cargarEncabezado();
+let atletas = JSON.parse(localStorage.getItem('bw_pesaje')||'[]');
+let tarimas = JSON.parse(localStorage.getItem('bw_tarimas')||'[]');
+
+function detectarNivel(t){
+  // CORRECCION: Primero lee el nivel real guardado
+  if(t.nivel) return t.nivel.toUpperCase();
+  // Fallback por compatibilidad con tarimas viejas
+  let txt = `${t.nombreTarima} ${t.modalidad} ${t.categoria} ${t.division}`.toUpperCase();
+  if(txt.includes('NOVATO')) return 'NOVATO';
+  if(txt.includes('CLASIFICADO')) return 'CLASIFICADO';
+  if(txt.includes('OPEN') || txt.includes('ABSOLUTO')) return 'OPEN';
+  return 'CLASIFICADO';
+}
+function detectarSubOrden(t){
+  let txt = `${t.categoria} ${t.division} ${t.modalidad}`.toUpperCase();
+  if(txt.includes('INFANTIL') || txt.includes('KIDS') || txt.includes('BABY')) return 1;
+  if(txt.includes('CAPACIDAD') || txt.includes('ESPECIAL') || txt.includes('SILLA') || txt.includes('DISCAPAC')) return 2;
+  if(txt.includes('CADETE')) return 3;
+  if(txt.includes('SUB JUNIOR') || txt.includes('SUBJUNIOR')) return 4;
+  if(txt.includes('JUNIOR')) return 5;
+  if(txt.includes('MASTER')) return 6;
+  if(txt.includes('SENIOR')) return 7;
+  return 8;
+}
+
+function rearmar(){
+ atletas = JSON.parse(localStorage.getItem('bw_pesaje')||'[]');
+ if(atletas.length===0){ alert('No hay atletas en pesaje.html'); return; }
+ let grupos = {};
+ atletas.forEach(a=>{
+   let modalidad = a.modalidad || 'SIN MODALIDAD';
+   let categoria = a.categoria || 'SIN CATEGORIA';
+   let division = a.division || 'SIN DIVISION';
+   let nivel = (a.nivel || 'SIN NIVEL').toUpperCase();
+   // CORRECCION: Incluir NIVEL en la clave de agrupado
+   let key = `${modalidad} || ${categoria} || ${division} || ${nivel}`;
+   if(!grupos[key]) grupos[key]={ modalidad, categoria, division, nivel, atletas:[] };
+   grupos[key].atletas.push(a);
+ });
+ tarimas = Object.values(grupos).map((g,i)=>({
+   id: Date.now()+i,
+   nombreTarima: `${g.modalidad} - ${g.categoria} - ${g.division} - ${g.nivel}`,
+   modalidad: g.modalidad,
+   categoria: g.categoria,
+   division: g.division,
+   nivel: g.nivel,
+   atletas: g.atletas
+ }));
+ localStorage.setItem('bw_tarimas', JSON.stringify(tarimas));
+ render();
+}
+function competirTarima(id){
+ let t = tarimas.find(x=>x.id===id);
+ if(!t) return;
+ localStorage.setItem('bw_tarima_activa', JSON.stringify(t));
+ localStorage.setItem('bw_atletas_competencia', JSON.stringify(t.atletas));
+ alert(`TARIMA ACTIVADA:\n${t.nombreTarima}\n${t.atletas.length} atletas\n\nSe abrirá master.html`);
+ location.href='master.html';
+}
+function borrarTarima(id){
+ if(!confirm('¿Borrar esta tarima?')) return;
+ tarimas = tarimas.filter(t=>t.id!==id);
+ localStorage.setItem('bw_tarimas', JSON.stringify(tarimas));
+ render();
+}
+function ordenPreferencial(){
+ const ordenNivel = {'NOVATO':1,'CLASIFICADO':2,'OPEN':3,'SIN NIVEL':4};
+ tarimas.sort((a,b)=>{
+   let na = detectarNivel(a), nb = detectarNivel(b);
+   if(ordenNivel[na] !== ordenNivel[nb]) return (ordenNivel[na]||99) - (ordenNivel[nb]||99);
+   let sa = detectarSubOrden(a), sb = detectarSubOrden(b);
+   if(sa !== sb) return sa - sb;
+   return a.modalidad.localeCompare(b.modalidad) || a.division.localeCompare(b.division);
+ });
+ localStorage.setItem('bw_tarimas', JSON.stringify(tarimas));
+ render();
+ alert('Ordenado: NOVATOS (Infantil > Capacidades > Junior > Masters > Senior) primero, luego CLASIFICADOS igual');
+}
+function exportarExcel(){
+ if(tarimas.length===0){alert('No hay tarimas');return}
+ let datos = tarimas.map((t,i)=>({
+   ORDEN: i+1,
+   MODALIDAD: t.modalidad,
+   NIVEL: detectarNivel(t),
+   CATEGORIA_EDAD: t.categoria,
+   DIVISION_PESO_TALLA: t.division,
+   NOMBRE_TARIMA_COMPLETO: t.nombreTarima,
+   NUM_ATLETAS: t.atletas.length,
+   ATLETAS: t.atletas.map(a=>a.nombre).join(' / ')
+ }));
+ let ws = XLSX.utils.json_to_sheet(datos);
+ ws['!cols']=[{wch:6},{wch:20},{wch:12},{wch:20},{wch:20},{wch:40},{wch:10},{wch:50}];
+ let wb = XLSX.utils.book_new();
+ XLSX.utils.book_append_sheet(wb, ws, "ORDEN COMPETENCIA");
+ XLSX.writeFile(wb, `ORDEN_CATEGORIAS_MR_QUITO_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+function imprimirOrden(){ window.print(); }
+function render(){
+ document.getElementById('totalAtletas').innerText=atletas.length;
+ document.getElementById('totalTarimas').innerText=tarimas.length;
+ let especiales = tarimas.filter(t=> t.modalidad.toLowerCase().includes('silla') || t.modalidad.toLowerCase().includes('discapacidad') || t.modalidad.toLowerCase().includes('infantil') || t.modalidad.toLowerCase().includes('coreografico') ).length;
+ document.getElementById('totalEspecial').innerText=especiales;
+ let div=document.getElementById('listaTarimas'); div.innerHTML='';
+ if(tarimas.length===0){
+   div.innerHTML=`<div class="card" style="text-align:center"><h3>No hay tarimas armadas</h3><p>Dale a RE-ARMAR AUTOMATICO</p></div>`;
+   return;
+ }
+ tarimas.forEach((t,idx)=>{
+   let nivel = detectarNivel(t);
+   let claseNivel = nivel==='NOVATO'?'novato':nivel==='CLASIFICADO'?'clasificado':'open';
+   let esEspecial = t.modalidad.toLowerCase().includes('silla') || t.modalidad.toLowerCase().includes('discapacidad');
+   let border = esEspecial ? 'border:2px solid #00c853' : '';
+   div.innerHTML+=`<div class="card ${claseNivel}" data-id="${t.id}" style="${border}">
+     <h3><span class="ordenNum">#${idx+1}</span> ${t.nombreTarima} <span style="background:#ffcc00;color:#000;padding:2px 6px;border-radius:4px;font-size:11px">${t.atletas.length} ATLETAS</span> <span style="background:#111;color:#ffcc00;border:1px solid #ffcc00;padding:2px 6px;border-radius:4px;font-size:10px">${nivel}</span> ${esEspecial?'<span style="background:#00c853;color:#fff;padding:2px 6px;border-radius:4px;font-size:10px">INCLUSIVO</span>':''}</h3>
+     <div style="font-size:11px;color:#aaa">MODALIDAD: ${t.modalidad} | CATEGORIA: ${t.categoria} | DIVISION: ${t.division} | NIVEL: ${t.nivel||nivel}</div>
+     <div class="atletasMini">${t.atletas.map(a=>`• ${a.nombre} - ${a.peso}kg ${a.talla}cm - ${a.gym} - ${a.nivel||''}`).join('<br>')}</div>
+     <button class="btnComp" onclick="competirTarima(${t.id})">🏆 COMPETIR ESTA TARIMA → MASTER</button>
+     <div style="text-align:right;margin-top:5px"><button class="btnDel" onclick="borrarTarima(${t.id})">Borrar</button> <span style="font-size:10px;color:#888">↕ Arrastra para mover</span></div>
+   </div>`;
+ });
+ Sortable.create(div,{
+   animation:150,ghostClass:'drag-ghost',
+   onEnd: function(evt){
+     let item = tarimas.splice(evt.oldIndex,1)[0];
+     tarimas.splice(evt.newIndex,0,item);
+     localStorage.setItem('bw_tarimas', JSON.stringify(tarimas));
+     render();
+   }
+ });
+}
+if(atletas.length>0 && tarimas.length===0){ rearmar(); } else { render(); }
+</script></body></html>

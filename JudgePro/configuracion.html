@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EASY REFEREE - Configurar Competencia</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
+  body{background:#fff;padding:20px}
+  .container{max-width:600px;margin:0 auto;text-align:center}
+  .logo{width:300px;max-width:100%}
+  .marca{font-size:42px;font-weight:900;letter-spacing:3px;margin:5px 0 0;line-height:1}
+  .subMarca{font-size:11px;font-weight:700;letter-spacing:2px;color:#e11d2e;margin:5px 0 20px}
+  h1{font-size:24px;font-weight:900;margin:10px 0 25px;letter-spacing:1px}
+  .box{border:2px solid #000;border-radius:15px;padding:25px;text-align:left}
+  label{display:block;font-weight:800;font-size:13px;margin:15px 0 5px}
+  input,select{width:100%;padding:14px;font-size:16px;border:2px solid #000;border-radius:10px;outline:none}
+  button{width:100%;padding:15px;margin-top:20px;font-size:17px;font-weight:900;background:#000;color:#fff;border:none;border-radius:10px;cursor:pointer}
+  button:hover{background:#e11d2e}
+  #ok{color:green;font-weight:700;text-align:center;margin-top:10px;display:none}
+  .footer{margin-top:25px;text-align:center;color:#555;font-size:13px;line-height:1.6}
+  .footer b{color:#000}
+  .btnAjustes{background:#ffcc00 !important;color:#000 !important;border:2px solid #000 !important}
+  .btnAjustes:hover{background:#ffdd33 !important}
+  .textoBase{font-size:12px;color:#555;text-align:center;margin-top:8px;line-height:1.5}
+  .btnJueces{background:#00c853 !important;color:#fff !important;border:2px solid #000 !important}
+  .btnJueces:hover{background:#00a344 !important}
+  .btnEncerar{background:#d50000 !important;color:#fff !important;border:2px solid #000 !important;font-size:16px !important}
+  .btnEncerar:hover{background:#a30000 !important}
+</style>
+</head>
+<body>
+<div class="container">
+  <img src="logo2.png" class="logo">
+  <div class="marca">EASY REFEREE</div>
+  <div class="subMarca">BODYBUILDING & FITNESS JUDGING SYSTEM</div>
+  <h1>CONFIGURAR COMPETENCIA</h1>
+  <div class="box">
+    <label>NOMBRE DEL EVENTO</label>
+    <input id="nombre" placeholder="Ej: MISS & MISTER QUITO 2026">
+    <label>LUGAR DEL EVENTO</label>
+    <input id="lugar" placeholder="Ej: Teatro Nacional, Quito">
+    <label>TIPO DE CAMPEONATO</label>
+    <select id="tipo">
+      <option value="">Selecciona...</option>
+      <option>NACIONAL</option>
+      <option>PROVINCIAL</option>
+      <option>REGIONAL</option>
+      <option>INTERNACIONAL</option>
+      <option>LOCAL / OPEN</option>
+    </select>
+    <label>FECHA DEL EVENTO</label>
+    <input type="date" id="fecha">
+    <label>CIUDAD / PROVINCIA</label>
+    <input id="ciudad" placeholder="Ej: Quito, Pichincha">
+    <button onclick="guardar()">GUARDAR Y CONTINUAR ➜</button>
+    <p id="ok">✅ Competencia guardada</p>
+
+    <div style="border-top:2px dashed #ccc;margin-top:20px;padding-top:5px">
+      <button class="btnAjustes" onclick="irAAjustes()">⚙️ AJUSTES - BASE DE DATOS</button>
+      <div class="textoBase">Ver, editar, importar y exportar la Base de Datos EASY REFEREE<br><b id="conteoBase">Cargando...</b></div>
+    </div>
+
+    <div style="border-top:2px dashed #ccc;margin-top:15px;padding-top:5px">
+      <button class="btnJueces" onclick="irAConectarJueces()">📱 CONECTAR JUECES</button>
+      <div class="textoBase">Conecta a los jueces con el QR<br>Ellos escanean, piden permiso y tú los apruebas<br><b style="color:#d50000">OJO: Abre primero el .bat en C:\EASY REFEREE</b></div>
+    </div>
+
+    <div style="border-top:2px dashed #ccc;margin-top:15px;padding-top:5px">
+      <button class="btnEncerar" onclick="encerarSistema()">🗑 ENCERAR SISTEMA PARA COMPETENCIA NUEVA</button>
+      <div class="textoBase">Encerra evento, pesaje, tarimas, votos y absolutos.<br><b>NO BORRA LA BASE DE DATOS.</b> Tu historial se queda intacto.</div>
+    </div>
+
+  </div>
+  <div class="footer">Desarrollado por <b>Fernando A. Arriaga</b> creador y propietario.<br>© 2026 EASY REFEREE - B&W FITNESS<br>Contacto: <b>0987144752 - alzarriaga593@gmail.com</b></div>
+</div>
+<script>
+const guardado = JSON.parse(localStorage.getItem('easy_competencia') || '{}');
+if(guardado.nombre) document.getElementById('nombre').value = guardado.nombre;
+if(guardado.lugar) document.getElementById('lugar').value = guardado.lugar;
+if(guardado.tipo) document.getElementById('tipo').value = guardado.tipo;
+if(guardado.fecha) document.getElementById('fecha').value = guardado.fecha;
+if(guardado.ciudad) document.getElementById('ciudad').value = guardado.ciudad;
+
+function guardar(){
+  const datos = { nombre: document.getElementById('nombre').value, lugar: document.getElementById('lugar').value, tipo: document.getElementById('tipo').value, fecha: document.getElementById('fecha').value, ciudad: document.getElementById('ciudad').value };
+  if(!datos.nombre || !datos.tipo || !datos.fecha){ alert('Por favor llena Nombre, Tipo y Fecha'); return; }
+  localStorage.setItem('easy_competencia', JSON.stringify(datos));
+  document.getElementById('ok').style.display = 'block';
+  setTimeout(()=>{ window.location.href = "pesaje.html"; }, 1000);
+}
+function irAAjustes(){ window.location.href = "base_datos.html"; }
+
+// === CONECTAR JUECES - SIN IP FIJA ===
+function getBaseJueces(){
+  let host = window.location.hostname;
+  let proto = window.location.protocol;
+  let port = window.location.port ? ':' + window.location.port : '';
+  if(!host || host === '' || proto === 'file:'){
+    let guardada = localStorage.getItem('bw_ip_jueces') || '192.168.1.89:8001';
+    return 'http://' + guardada;
+  }
+  return proto + '//' + host + port;
+}
+function irAConectarJueces(){
+  let base = getBaseJueces();
+  localStorage.setItem('bw_base_jueces', base);
+  try{
+    let u = new URL(base);
+    if(u.hostname && u.hostname !== 'localhost' && u.hostname !== '127.0.0.1'){
+      localStorage.setItem('bw_ip_jueces', u.hostname + (u.port ? ':'+u.port : ''));
+    }
+  }catch(e){}
+  window.location.href = "conectar_jueces.html";
+}
+
+// === ENCERAR SISTEMA - SIN TOCAR LA BASE DE DATOS ===
+function encerarSistema(){
+  if(!confirm('¿ENCERAR EL SISTEMA PARA COMPETENCIA NUEVA?\n\nBorra:\n- Evento anterior\n- Pesaje\n- Tarimas armadas\n- Tarima activa\n- Atletas y votos de Master\n- Absolutos\n\nNO BORRA LA BASE DE DATOS.\nTu historial queda intacto.')) return;
+  const clavesEncerar = ['easy_competencia','bw_pesaje','bw_tarimas','bw_tarima_activa','bw_puntuacion_activa','bw_atletas_competencia','afpp_atl','afpp_vot','bw_absolutos','bw_categorias','bw_competencia','bw_tarima'];
+  clavesEncerar.forEach(k=>localStorage.removeItem(k));
+  fetch('/api/atletas',{method:'DELETE'}).catch(()=>{});
+  fetch('/api/reset_votos',{method:'POST'}).catch(()=>{});
+  document.getElementById('nombre').value='';
+  document.getElementById('lugar').value='';
+  document.getElementById('tipo').value='';
+  document.getElementById('fecha').value='';
+  document.getElementById('ciudad').value='';
+  alert('✅ SISTEMA ENCERADO. Base de Datos intacta. Ya puedes crear tu competencia nueva.');
+}
+try{
+  let base = JSON.parse(localStorage.getItem('bw_base_datos')||'[]');
+  document.getElementById('conteoBase').innerText = 'Atletas en base: ' + base.length;
+}catch(e){
+  document.getElementById('conteoBase').innerText = 'Atletas en base: 0';
+}
+</script>
+</body>
+</html>

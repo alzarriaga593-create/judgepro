@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CONECTAR A JUECES</title>
+<script src="qrcode.min.js"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:Arial, sans-serif}
+  body{background:#000;padding:0;padding-bottom:20px;color:#fff;font-family:Arial, sans-serif}
+  .headerAmarillo{background:#ffcc00;color:#000;text-align:center;padding:14px 10px;font-size:22px;font-weight:900;letter-spacing:1px;font-family:Arial Black, Arial, sans-serif}
+  .container{max-width:600px;margin:0 auto;text-align:center;padding:0 12px}
+  .box{background:#111;border:2px solid #ffcc00;border-radius:15px;padding:25px;text-align:left;margin-top:20px}
+  label{display:block;font-weight:800;font-size:13px;margin:15px 0 5px;text-align:center;color:#ffcc00;font-family:Arial, sans-serif}
+  button{width:100%;padding:15px;margin-top:10px;font-size:17px;font-weight:900;background:#000;color:#ffcc00;border:2px solid #ffcc00;border-radius:10px;cursor:pointer;font-family:Arial, sans-serif}
+  button:hover{background:#222}
+  .footer{margin-top:25px;text-align:center;color:#ffcc00;font-size:13px;line-height:1.6;font-family:Arial, sans-serif}
+  .footer b{color:#fff}
+  .textoBase{font-size:12px;color:#ccc;text-align:center;margin-top:8px;line-height:1.5;font-family:Arial, sans-serif}
+  .textoBase b{color:#fff}
+  #qrcode{display:flex;justify-content:center;margin:10px 0}
+  #qrcode img, #qrcode canvas{border:3px solid #ffcc00;border-radius:10px;padding:8px;background:#fff}
+  .linkQR{word-break:break-all;font-size:12px;font-weight:800;text-align:center;background:#ffcc00;color:#000;padding:8px;border:2px solid #ffcc00;border-radius:8px;margin-top:10px;font-family:Arial, sans-serif}
+  .solicitud{border:2px solid #ffcc00;border-radius:12px;padding:12px;margin-top:12px;background:#000;font-family:Arial, sans-serif}
+  .solicitud b{font-size:16px;color:#ffcc00}
+  .solicitud{color:#fff}
+  .estado{font-size:12px;font-weight:900;padding:3px 8px;border-radius:6px;display:inline-block;margin-top:5px;font-family:Arial, sans-serif}
+  .estado.PENDIENTE{background:#ffcc00;color:#000}
+  .estado.APROBADO{background:#00c853;color:#fff}
+  .estado.RECHAZADO{background:#d50000;color:#fff}
+  .filaBtns{display:flex;gap:8px;margin-top:10px}
+  .filaBtns button{margin-top:0;font-size:14px;padding:11px}
+  .btnAprobar{background:#00c853 !important;color:#fff !important;border-color:#00c853 !important}
+  .btnAprobar:hover{background:#00a344 !important}
+  .btnBorrar{background:#d50000 !important;color:#fff !important;border-color:#d50000 !important}
+  .btnBorrar:hover{background:#a30000 !important}
+  .btnAmarillo{background:#ffcc00 !important;color:#000 !important;border:2px solid #ffcc00 !important}
+  .btnAmarillo:hover{background:#ffdd33 !important}
+  .btnVerde{background:#00c853 !important;color:#fff !important;border-color:#00c853 !important}
+  .btnGris{background:#222 !important;color:#ffcc00 !important}
+  .vacio{text-align:center;color:#ffcc00;font-size:14px;padding:20px 0;line-height:1.6;font-family:Arial, sans-serif}
+  .contador{text-align:center;font-weight:900;font-size:14px;margin:10px 0;color:#ffcc00;font-family:Arial, sans-serif}
+  .contador span{color:#fff}
+</style>
+</head>
+<body>
+<div class="headerAmarillo">📱 CONECTAR A JUECES</div>
+<div class="container">
+
+  <!-- QR ARRIBA -->
+  <div class="box">
+    <label>📱 ESCANEA EL QR PARA VOTAR COMO JUEZ</label>
+    <div id="qrcode"></div>
+    <div class="linkQR" id="linkQR">Cargando enlace...</div>
+    <div class="textoBase">El juez escanea, pone su nombre, pide permiso y tú lo apruebas abajo.<br>Si el QR no sale, abre esta misma dirección en el celu del juez.</div>
+    <button onclick="cargarSolicitudes()">↻ ACTUALIZAR SOLICITUDES</button>
+  </div>
+
+  <!-- SOLICITUDES EN MEDIO -->
+  <div class="box" style="margin-top:20px">
+    <label>📋 SOLICITUDES DE JUECES</label>
+    <div class="contador">Aprobados: <span id="cntAprobados">0</span> | Pendientes: <span id="cntPendientes">0</span></div>
+    <div id="listaSolicitudes"><div class="vacio">Cargando solicitudes...</div></div>
+  </div>
+
+  <!-- BOTON VOLVER - REGRESA A LA PAGINA DONDE ESTABAS -->
+  <button onclick="volver()" class="btnGris" style="margin-top:20px">⬅ VOLVER</button>
+
+  <div class="footer">Desarrollado por <b>Fernando A. Arriaga</b> creador y propietario.<br>© 2026 EASY REFEREE - B&W FITNESS<br>Contacto: <b>0987144752 - alzarriaga593@gmail.com</b></div>
+</div>
+
+<script>
+// === VOLVER A LA PAGINA DONDE ESTABAS ===
+function volver(){
+  if(window.history.length > 1){
+    window.history.back();
+  } else {
+    location.href = 'index.html';
+  }
+}
+
+// === GENERAR QR - CON LA IP REAL DE HOY, SIN IP FIJA ===
+function generarQR(){
+  let urlJuez = '';
+  // 1. Si venimos de configuracion.html, usa la base que ahí se guardó
+  let baseGuardada = localStorage.getItem('bw_base_jueces') || '';
+  // 2. Si esta página ya se abrió con http://IP:puerto, esa es la buena
+  if(window.location.protocol !== 'file:' && window.location.hostname && window.location.hostname !== ''){
+    let port = window.location.port ? ':' + window.location.port : '';
+    urlJuez = window.location.protocol + '//' + window.location.hostname + port + '/juez.html';
+  } else if(baseGuardada){
+    // 3. Si se abrió con doble clic (file://), usa la que guardó configuracion.html
+    urlJuez = baseGuardada.replace(/\/$/, '') + '/juez.html';
+  } else {
+    // 4. Último recurso: IP guardada antes, no la fija vieja
+    let ipGuardada = localStorage.getItem('bw_ip_jueces') || '192.168.1.89:8001';
+    urlJuez = 'http://' + ipGuardada + '/juez.html';
+  }
+  document.getElementById('linkQR').innerText = urlJuez;
+  try{
+    document.getElementById('qrcode').innerHTML = '';
+    new QRCode(document.getElementById('qrcode'), { text: urlJuez, width: 220, height: 220, correctLevel: QRCode.CorrectLevel.M });
+  }catch(e){
+    document.getElementById('qrcode').innerHTML = '<p style="text-align:center">No se pudo generar QR.<br>Usa el enlace amarillo de abajo.</p>';
+  }
+}
+generarQR();
+
+// === CARGAR SOLICITUDES ===
+async function cargarSolicitudes(){
+  let div = document.getElementById('listaSolicitudes');
+  try{
+    let r = await fetch('/api/solicitudes-jueces');
+    if(!r.ok) throw new Error('sin server');
+    let jueces = await r.json();
+    mostrarSolicitudes(jueces);
+  }catch(e){
+    let jueces = JSON.parse(localStorage.getItem('bw_jueces_solicitudes')||'[]');
+    if(jueces.length===0){
+      div.innerHTML = '<div class="vacio">Sin solicitudes todavía.<br>Que un juez escanee el QR y pida permiso.<br><br>Si estás sin server, abre con el .bat prendido.</div>';
+      document.getElementById('cntAprobados').innerText = '0';
+      document.getElementById('cntPendientes').innerText = '0';
+      return;
+    }
+    mostrarSolicitudes(jueces);
+  }
+}
+
+function mostrarSolicitudes(jueces){
+  let div = document.getElementById('listaSolicitudes');
+  let aprobados = jueces.filter(j=>j.estado==='APROBADO').length;
+  let pendientes = jueces.filter(j=>j.estado!=='APROBADO').length;
+  document.getElementById('cntAprobados').innerText = aprobados;
+  document.getElementById('cntPendientes').innerText = pendientes;
+  if(!jueces.length){
+    div.innerHTML = '<div class="vacio">Sin solicitudes todavía.<br>Que un juez escanee el QR y pida permiso.</div>';
+    return;
+  }
+  div.innerHTML = jueces.map((j,i)=>{
+    let id = j.id || j.nombre || i;
+    let nombre = (j.nombre||'SIN NOMBRE').toUpperCase();
+    let num = j.juez || (i+1);
+    let estado = (j.estado||'PENDIENTE').toUpperCase();
+    return `<div class="solicitud">
+      <b>${nombre}</b> - JUEZ ${num}<br>
+      <span class="estado ${estado}">${estado}</span>
+      <div class="filaBtns">
+        ${estado!=='APROBADO' ? `<button class="btnAprobar" onclick="aprobarJuez('${id}','${nombre}',${num})">✅ APROBAR</button>` : `<button class="btnAprobar" style="opacity:0.6">✅ APROBADO</button>`}
+        <button class="btnBorrar" onclick="borrarSolicitud('${id}','${nombre}')">🗑 BORRAR</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// === APROBAR ===
+async function aprobarJuez(id, nombre, num){
+  try{
+    await fetch('/api/aprobar-juez',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,nombre:nombre,juez:num,estado:'APROBADO'})});
+  }catch(e){}
+  try{
+    await fetch('/api/solicitudes-jueces',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,nombre:nombre,juez:num,estado:'APROBADO'})});
+  }catch(e){}
+  alert('✅ ' + nombre + ' APROBADO como JUEZ ' + num);
+  cargarSolicitudes();
+}
+
+// === BORRAR SOLICITUD ===
+async function borrarSolicitud(id, nombre){
+  if(!confirm('¿Borrar solicitud de ' + nombre + '?')) return;
+  try{
+    await fetch('/api/solicitudes-jueces',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,nombre:nombre})});
+  }catch(e){}
+  try{
+    await fetch('/api/borrar-juez',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,nombre:nombre})});
+  }catch(e){}
+  let arr = JSON.parse(localStorage.getItem('bw_jueces_solicitudes')||'[]');
+  arr = arr.filter(j=> String(j.id)!==String(id) && j.nombre!==nombre);
+  localStorage.setItem('bw_jueces_solicitudes', JSON.stringify(arr));
+  cargarSolicitudes();
+}
+
+cargarSolicitudes();
+setInterval(cargarSolicitudes, 3000);
+</script>
+</body>
+</html>

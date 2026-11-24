@@ -1,0 +1,95 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PROYECTOR OFICIAL</title>
+<style>
+body{margin:0;background:#000;color:#fff;font-family:Arial;text-align:center}
+.header{background:linear-gradient(90deg,#ffcc00,#ff9900);color:#000;padding:20px 15px;font-family:Arial Black;font-size:26px;letter-spacing:1px}
+.subtitulo{font-size:15px;color:#ccc;padding:10px}
+.pantallaPrincipal{background:linear-gradient(145deg,#1a1a1a,#2a2a2a);border:4px solid #ffcc00;border-radius:20px;margin:20px;padding:30px 15px;min-height:320px}
+.etiqueta{color:#ffcc00;font-family:Arial Black;font-size:18px;letter-spacing:2px}
+.nombreGigante{font-family:Arial Black;font-size:52px;line-height:1.1;margin:15px 0;color:#fff;word-break:break-word}
+.categoriaGigante{font-size:22px;color:#ffcc00;font-weight:bold}
+.finalistasBox{background:#111;border:2px solid #333;border-radius:15px;margin:20px;padding:15px;text-align:left}
+.finalista{display:flex;justify-content:space-between;padding:10px 5px;border-bottom:1px solid #222;font-size:18px}
+.finalista:last-child{border-bottom:none}
+.finalista b{color:#fff}
+.finalista span{color:#ffcc00;font-weight:bold}
+.sinGanador{font-size:22px;color:#aaa;padding:40px 10px;line-height:1.5}
+.btnVolver{background:#222;color:#ffcc00;padding:12px 20px;border:1px solid #ffcc00;border-radius:8px;font-size:15px;cursor:pointer;margin:10px}
+.footer{padding:20px 15px 30px 15px;color:#aaa;font-size:12px;line-height:1.6;text-align:center}
+.footer b{color:#fff}
+.footer .descFinal{color:#ccc;font-size:13px;margin-bottom:12px}
+</style></head><body>
+<div class="header" id="tituloProyector">🏆 CAMPEONES ABSOLUTOS 🏆</div>
+<div class="subtitulo" id="subtituloProyector">Final Absoluta - Se enfrentan los campeones de cada categoría</div>
+
+<!-- PANTALLA PRINCIPAL - SOLO PARA MOSTRAR, SIN BOTONES DE VOTO -->
+<div class="pantallaPrincipal">
+  <div class="etiqueta" id="etiquetaProyector">👑 CAMPEÓN ABSOLUTO 👑</div>
+  <div id="zonaCampeon"></div>
+</div>
+
+<!-- LISTA DE FINALISTAS PARA QUE EL PÚBLICO VEA QUIÉNES COMPITEN -->
+<div class="finalistasBox">
+  <h3 style="color:#ffcc00;margin:0 0 10px 0;text-align:center">FINALISTAS ABSOLUTOS</h3>
+  <div id="listaFinalistas"></div>
+</div>
+
+<div>
+  <button class="btnVolver" onclick="location.href='absolutos.html'">⬅ VOLVER A ABSOLUTOS</button>
+</div>
+
+<!-- DESCRIPCIÓN AL FINAL -->
+<div class="footer">
+  <div class="descFinal" id="descripcionProyector">Final Absoluta - Se enfrentan los campeones de cada categoría para elegir al Campeón Absoluto.</div>
+  Desarrollado por <b>Fernando A. Arriaga</b> creador y propietario.<br>© 2026 EASY REFEREE - B&W FITNESS<br>Contacto: <b>0987144752 - alzarriaga593@gmail.com</b>
+</div>
+
+<script>
+// === LEE TODO DE TU SISTEMA, SIN PEDIR NADA DOS VECES ===
+function getDatosCompetencia(){
+  try{ return JSON.parse(localStorage.getItem('easy_competencia') || '{}'); }catch(e){ return {}; }
+}
+function cargarProyector(){
+  let comp = getDatosCompetencia();
+  let nombre = (comp.nombre && comp.nombre.trim()) ? comp.nombre.trim().toUpperCase() : 'MR QUITO';
+
+  // 1. Título SIN B&W, con nombre de tu Configuración
+  document.getElementById('tituloProyector').innerText = '🏆 CAMPEONES ABSOLUTOS ' + nombre + ' 🏆';
+  document.title = 'PROYECTOR - ' + nombre;
+
+  let extra = '';
+  if(comp.tipo) extra += ' • ' + comp.tipo;
+  if(comp.ciudad) extra += ' • ' + comp.ciudad;
+  if(comp.fecha) extra += ' • ' + comp.fecha;
+  if(comp.lugar) extra += ' • ' + comp.lugar;
+
+  document.getElementById('subtituloProyector').innerText = 'Final Absoluta del ' + nombre + extra;
+  document.getElementById('descripcionProyector').innerText = 'Final Absoluta del ' + nombre + extra + ' - Se enfrentan los campeones de cada categoría para elegir al Campeón Absoluto.';
+
+  // 2. Campeón Absoluto declarado en la pantalla de Absolutos
+  let campeon = null;
+  try{ campeon = JSON.parse(localStorage.getItem('bw_campeon_absoluto') || 'null'); }catch(e){ campeon = null; }
+
+  let zona = document.getElementById('zonaCampeon');
+  if(campeon && campeon.nombre){
+    zona.innerHTML = '<div class="nombreGigante">' + campeon.nombre + '</div><div class="categoriaGigante">' + (campeon.categoria || 'CAMPEÓN DE CATEGORÍA') + '</div><div style="margin-top:15px;color:#aaa;font-size:14px">🏆 ' + nombre + '</div>';
+  } else {
+    zona.innerHTML = '<div class="sinGanador">ESPERANDO RESULTADO...<br><br>El Campeón Absoluto aparecerá aquí cuando lo declares en la pantalla de Absolutos.</div>';
+  }
+
+  // 3. Lista de finalistas
+  let absolutos = [];
+  try{ absolutos = JSON.parse(localStorage.getItem('bw_absolutos') || '[]'); }catch(e){ absolutos = []; }
+  let lista = document.getElementById('listaFinalistas');
+  if(absolutos.length === 0){
+    lista.innerHTML = '<div style="text-align:center;color:#aaa;padding:15px">Sin finalistas todavía.</div>';
+  } else {
+    lista.innerHTML = '';
+    absolutos.slice().sort((a,b)=>(b.votos||0)-(a.votos||0)).forEach(a=>{
+      lista.innerHTML += '<div class="finalista"><div><b>' + a.nombre + '</b><br><small style="color:#aaa">' + (a.categoria || '') + '</small></div><span>' + (a.votos||0) + ' VOTOS</span></div>';
+    });
+  }
+}
+cargarProyector();
+// Se actualiza solo cada 3 segundos, para que no tengas que recargar en el evento
+setInterval(cargarProyector, 3000);
+</script></body></html>
